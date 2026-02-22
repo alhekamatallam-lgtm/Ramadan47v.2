@@ -229,16 +229,10 @@ const App: React.FC = () => {
             {isAdmin && (
               <>
                 <button 
-                  onClick={() => setView('fast_eval_results')} 
-                  className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${view === 'fast_eval_results' ? 'bg-[#C5A059] text-white shadow-md' : 'text-white/60 hover:text-white'}`}
-                >
-                  التقييم
-                </button>
-                <button 
                   onClick={() => setView('visit_results')} 
                   className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${view === 'visit_results' ? 'bg-[#C5A059] text-white shadow-md' : 'text-white/60 hover:text-white'}`}
                 >
-                  الزيارات
+                  التقييمات الميدانية
                 </button>
               </>
             )}
@@ -352,13 +346,6 @@ const App: React.FC = () => {
             onCancel={handleCancel}
           />
         )}
-        {view === 'fast_eval_results' && (
-          <FastEvalResults
-            records={fastEvalRecords}
-            mosques={mosquesList}
-            onBack={() => setView('dashboard')}
-          />
-        )}
         {view === 'visit' && (
           <VisitForm
             mosques={mosquesList}
@@ -369,7 +356,8 @@ const App: React.FC = () => {
         )}
         {view === 'visit_results' && (
           <VisitResults
-            records={visitRecords}
+            visitRecords={visitRecords}
+            fastEvalRecords={fastEvalRecords}
             mosques={mosquesList}
             onBack={() => setView('dashboard')}
           />

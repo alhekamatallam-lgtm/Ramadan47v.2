@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { VisitRecord, MosqueInfo } from '../types.ts';
+import { VisitRecord, FastEvalRecord, MosqueInfo } from '../types.ts';
 
 // Reusable component for displaying an average rating with a progress bar
 const AverageRatingBar: React.FC<{ label: string; score: number }> = ({ label, score }) => {
@@ -24,10 +24,29 @@ const AverageRatingBar: React.FC<{ label: string; score: number }> = ({ label, s
 };
 
 
-const VisitResults: React.FC<{ records: VisitRecord[], mosques: MosqueInfo[], onBack: () => void }> = ({ records, mosques, onBack }) => {
+const VisitResults: React.FC<{ 
+  visitRecords: VisitRecord[], 
+  fastEvalRecords: FastEvalRecord[], 
+  mosques: MosqueInfo[], 
+  onBack: () => void 
+}> = ({ visitRecords, fastEvalRecords, mosques, onBack }) => {
   const [selectedMosque, setSelectedMosque] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'iftar' | 'prayer'>('iftar');
 
-  const evaluationCriteria = {
+  const iftarCriteria = {
+    حرارة_الوجبة: 'حرارة الوجبة',
+    الرز: 'جودة الأرز',
+    الدجاج: 'جودة الدجاج',
+    السمبوسة: 'جودة السمبوسة',
+    الشوربة: 'جودة الشوربة',
+    تنوع_أصناف_الوجبة: 'تنوع الأصناف',
+    التغليف: 'جودة التغليف',
+    النقل_والتعبئة: 'النقل والتعبئة',
+    الالتزام_في_الوقت: 'الالتزام بالوقت',
+    التوصية_بتكرار_التعامل_في_الأعوام_القادمة: 'التوصية بالتعامل مستقبلاً'
+  };
+
+  const prayerCriteria = {
     النظافة: 'النظافة',
     التكييف: 'التكييف',
     الرائحة: 'الرائحة',
@@ -38,21 +57,24 @@ const VisitResults: React.FC<{ records: VisitRecord[], mosques: MosqueInfo[], on
     مواقف_السيارت: 'مواقف السيارات',
   };
 
+  const currentCriteria = activeTab === 'iftar' ? iftarCriteria : prayerCriteria;
+  const currentRecords = activeTab === 'iftar' ? fastEvalRecords : visitRecords;
+
   const filteredRecords = useMemo(() => {
-    if (selectedMosque === 'all') return records;
-    return records.filter(r => r.mosque_code === selectedMosque);
-  }, [records, selectedMosque]);
+    if (selectedMosque === 'all') return currentRecords;
+    return currentRecords.filter(r => r.mosque_code === selectedMosque);
+  }, [currentRecords, selectedMosque]);
 
   const averageScores = useMemo(() => {
     const scores: { [key: string]: { sum: number, count: number } } = {};
     
-    Object.keys(evaluationCriteria).forEach(key => {
+    Object.keys(currentCriteria).forEach(key => {
       scores[key] = { sum: 0, count: 0 };
     });
 
     filteredRecords.forEach(record => {
-      Object.keys(evaluationCriteria).forEach(key => {
-        const value = Number(record[key as keyof VisitRecord]);
+      Object.keys(currentCriteria).forEach(key => {
+        const value = Number(record[key as keyof typeof record]);
         if (!isNaN(value) && value > 0) {
           scores[key].sum += value;
           scores[key].count++;
@@ -66,7 +88,7 @@ const VisitResults: React.FC<{ records: VisitRecord[], mosques: MosqueInfo[], on
     });
 
     return averages;
-  }, [filteredRecords]);
+  }, [filteredRecords, currentCriteria]);
 
   const generalNotes = useMemo(() => {
     return filteredRecords
@@ -90,10 +112,25 @@ const VisitResults: React.FC<{ records: VisitRecord[], mosques: MosqueInfo[], on
             </svg>
           </button>
           <div>
-            <h2 className="text-3xl font-black text-[#003366]">نتائج تقارير الزيارات الميدانية</h2>
-            <p className="text-slate-400 text-sm font-bold">ملخص متوسط التقييمات والملاحظات من الزيارات</p>
+            <h2 className="text-3xl font-black text-[#003366]">نتائج التقارير الميدانية</h2>
+            <p className="text-slate-400 text-sm font-bold">ملخص متوسط التقييمات والملاحظات من الميدان</p>
           </div>
         </div>
+      </div>
+
+      <div className="flex bg-white p-2 rounded-3xl shadow-sm border border-slate-100 w-fit mx-auto gap-2">
+        <button 
+          onClick={() => setActiveTab('iftar')}
+          className={`px-8 py-3 rounded-2xl font-black text-sm transition-all ${activeTab === 'iftar' ? 'bg-[#0054A6] text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}
+        >
+          🍱 وجبات الإفطار
+        </button>
+        <button 
+          onClick={() => setActiveTab('prayer')}
+          className={`px-8 py-3 rounded-2xl font-black text-sm transition-all ${activeTab === 'prayer' ? 'bg-[#0054A6] text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}
+        >
+          🕌 الصلاة والمرافق
+        </button>
       </div>
 
        <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 flex flex-col md:flex-row md:items-center gap-8">
@@ -119,7 +156,7 @@ const VisitResults: React.FC<{ records: VisitRecord[], mosques: MosqueInfo[], on
         <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
            <h3 className="text-xl font-black text-[#003366] mb-6">📊 متوسط التقييمات</h3>
            <div className="space-y-4">
-            {Object.entries(evaluationCriteria).map(([key, label]) => (
+            {Object.entries(currentCriteria).map(([key, label]) => (
                 <AverageRatingBar key={key} label={label} score={averageScores[key]} />
             ))}
            </div>
