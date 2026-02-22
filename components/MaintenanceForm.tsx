@@ -60,7 +60,14 @@ const MaintenanceForm: React.FC<any> = ({ initialData, mosques, days, isAdmin, o
       setErrors({ code_day: 'يرجى اختيار اليوم' });
       return;
     }
-    onSave({ ...formData, sheet: 'Maintenance_Report' });
+    const dayInfo = days.find(d => d.code_day === formData.code_day);
+    const payload = {
+      ...formData,
+      sheet: 'Maintenance_Report',
+      label: dayInfo?.label || formData.label_day || formData.اليوم,
+      اليوم: dayInfo?.label || formData.label_day || formData.اليوم,
+    };
+    onSave(payload);
   };
 
   return (
