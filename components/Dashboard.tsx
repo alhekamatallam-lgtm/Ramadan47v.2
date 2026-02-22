@@ -54,55 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, o
           <h2 className="text-4xl font-black text-[#003366]">مرحباً بك 🌙</h2>
           <p className="text-[#5a7b9c] font-bold mt-2">بوابة الميدان - مؤسسة عبدالله الراجحي الخيرية</p>
         </div>
-        
-        <button 
-          onClick={handleAiAnalysis}
-          disabled={isAnalyzing}
-          className={`group flex items-center gap-3 px-8 py-4 rounded-[1.5rem] font-black text-sm transition-all shadow-xl hover:shadow-[#C5A059]/20 ${
-            isAnalyzing 
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-              : 'bg-gradient-to-r from-[#003366] to-[#0054A6] text-white hover:scale-105'
-          }`}
-        >
-          {isAnalyzing ? (
-            <div className="w-5 h-5 border-2 border-slate-300 border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            <span className="text-xl group-hover:rotate-12 transition-transform">✨</span>
-          )}
-          {isAnalyzing ? 'جاري استنتاج الرؤى...' : 'تحليل الميدان بالذكاء الاصطناعي'}
-        </button>
       </div>
-
-      {aiInsight && (
-        <div className="relative bg-white border-2 border-[#C5A059]/20 rounded-[2.5rem] p-10 shadow-2xl overflow-hidden animate-in">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#C5A059] to-[#003366]"></div>
-          <div className="absolute -right-10 -bottom-10 text-[12rem] opacity-[0.03] select-none font-black text-[#003366]">AI</div>
-          
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#C5A059] text-white rounded-2xl flex items-center justify-center shadow-lg text-2xl">🤖</div>
-              <div>
-                <h3 className="text-xl font-black text-[#003366]">ملخص الرؤى الذكية</h3>
-                <p className="text-xs text-slate-400 font-bold">بناءً على أحدث التقارير الميدانية المعتمدة</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setAiInsight(null)}
-              className="p-2 hover:bg-red-50 text-slate-300 hover:text-red-500 rounded-xl transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          
-          <div className="prose prose-slate max-w-none">
-            <div className="text-[#003366] leading-relaxed font-medium whitespace-pre-wrap text-lg">
-              {aiInsight}
-            </div>
-          </div>
-        </div>
-      )}
 
       <ImageSlider photos={photos} />
 

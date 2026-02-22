@@ -5,10 +5,6 @@ import { MosqueRecord } from "../types.ts";
 export const analyzeFieldData = async (records: MosqueRecord[]) => {
   if (!records || records.length === 0) return "لا توجد بيانات كافية للتحليل حالياً.";
   
-  // Lazy initialization: Initialize the AI client only when the function is called.
-  // This prevents the entire app from crashing if the API key is missing on load.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
   const dataSummary = records.map(r => ({
     mosque: r.المسجد,
     attendance: (Number(r.عدد_المصلين_رجال || 0) + Number(r.عدد_المصلين_نساء || 0)),
@@ -27,6 +23,13 @@ export const analyzeFieldData = async (records: MosqueRecord[]) => {
   `;
 
   try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return "تنبيه: مفتاح API الخاص بـ Gemini غير متوفر. يرجى التأكد من إعداد البيئة بشكل صحيح.";
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+    
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: prompt,
