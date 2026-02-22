@@ -54,6 +54,22 @@ const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, o
           <h2 className="text-4xl font-black text-[#003366]">مرحباً بك 🌙</h2>
           <p className="text-[#5a7b9c] font-bold mt-2">بوابة الميدان - مؤسسة عبدالله الراجحي الخيرية</p>
         </div>
+
+        <div className="bg-white p-5 rounded-[2.5rem] shadow-2xl border-2 border-[#C5A059]/10 flex flex-col items-center gap-3 hover:scale-105 transition-all duration-300 group">
+          <div className="w-28 h-28 bg-white rounded-2xl flex items-center justify-center overflow-hidden border-2 border-slate-50 shadow-inner relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#003366]/5 to-transparent pointer-events-none"></div>
+            <img 
+              src="https://res.cloudinary.com/domimvikq/image/upload/v1771792001/Qq2mkLQtzasD479_ryol7f.png" 
+              alt="QR Code" 
+              className="w-full h-full object-contain relative z-10 p-1"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] font-black text-[#003366] uppercase tracking-[0.2em]">الوصول السريع</span>
+            <div className="h-1 w-8 bg-[#C5A059] rounded-full mt-1 group-hover:w-12 transition-all"></div>
+          </div>
+        </div>
       </div>
 
       <ImageSlider photos={photos} />
