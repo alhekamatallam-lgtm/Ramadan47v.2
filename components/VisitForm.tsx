@@ -48,7 +48,7 @@ const VisitForm: React.FC<{ mosques: MosqueInfo[], days: DayInfo[], onSave: (dat
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    setFormData({ ...INITIAL_VISIT_RECORD, رقم_السجل: `VISIT-${Date.now()}` });
+    setFormData({ ...INITIAL_VISIT_RECORD, record_id: `VISIT-${Date.now()}` });
   }, []);
 
   const handleRatingChange = (field: keyof VisitRecord, value: number) => {
@@ -82,6 +82,16 @@ const VisitForm: React.FC<{ mosques: MosqueInfo[], days: DayInfo[], onSave: (dat
     if (!formData.الاسم_الكريم) newErrors.الاسم_الكريم = "يجب إدخال اسم الزائر";
     if (!formData.اليوم) newErrors.اليوم = "يجب اختيار اليوم";
 
+    const ratingFields: (keyof VisitRecord)[] = ['النظافة', 'التكييف', 'الرائحة', 'الإنارة', 'المظهر_العام_الداخلي', 'المظهر_العام_الخارجي', 'مدخل_المسجد', 'مواقف_السيارت'];
+    let firstRatingError = '';
+    for (const field of ratingFields) {
+      if (!formData[field]) {
+        firstRatingError = 'يرجى تقييم جميع البنود من 1 إلى 5';
+        break;
+      }
+    }
+    if (firstRatingError) newErrors.ratings = firstRatingError;
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -94,7 +104,7 @@ const VisitForm: React.FC<{ mosques: MosqueInfo[], days: DayInfo[], onSave: (dat
     <div className="max-w-4xl mx-auto space-y-10 pb-40 animate-in text-right">
       <div className="text-center">
         <h2 className="text-4xl font-black text-[#003366]">نموذج تقرير زيارة ميدانية 📋</h2>
-        <p className="text-slate-500 font-bold mt-2">لتسجيل تفاصيل الزيارات وتقييم جودة الوجبات المقدمة</p>
+        <p className="text-slate-500 font-bold mt-2">لتقييم نظافة وجاهزية مرافق المسجد</p>
       </div>
 
       <InputGroup title="بيانات الزائر والموقع" icon="👤">
@@ -131,19 +141,18 @@ const VisitForm: React.FC<{ mosques: MosqueInfo[], days: DayInfo[], onSave: (dat
       <div className="bg-white rounded-[3rem] shadow-sm border border-slate-100 p-8 sm:p-10 relative overflow-hidden">
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 bg-[#0054A6]/5 rounded-2xl flex items-center justify-center text-2xl">⭐</div>
-          <h3 className="text-xl font-black text-[#003366]">تقييم جودة الوجبة والمورد</h3>
+          <h3 className="text-xl font-black text-[#003366]">تقييم جاهزية المسجد ومرافقه</h3>
         </div>
+        {errors.ratings && <div className="-mt-4 mb-6 text-center text-red-500 font-bold text-sm animate-in fade-in">{errors.ratings}</div>}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8">
-            <RatingScale label="حرارة الوجبة" subLabels={['باردة', 'ساخنة']} value={formData.حرارة_الوجبة} onChange={(v) => handleRatingChange('حرارة_الوجبة', v)} />
-            <RatingScale label="جودة الأرز" subLabels={['سيئة', 'ممتازة']} value={formData.الرز} onChange={(v) => handleRatingChange('الرز', v)} />
-            <RatingScale label="جودة الدجاج" subLabels={['سيئة', 'ممتازة']} value={formData.الدجاج} onChange={(v) => handleRatingChange('الدجاج', v)} />
-            <RatingScale label="جودة السمبوسة" subLabels={['سيئة', 'ممتازة']} value={formData.السمبوسة} onChange={(v) => handleRatingChange('السمبوسة', v)} />
-            <RatingScale label="جودة الشوربة" subLabels={['سيئة', 'ممتازة']} value={formData.الشوربة} onChange={(v) => handleRatingChange('الشوربة', v)} />
-            <RatingScale label="تنوع الأصناف" subLabels={['قليل جداً', 'متنوع جداً']} value={formData.تنوع_أصناف_الوجبة} onChange={(v) => handleRatingChange('تنوع_أصناف_الوجبة', v)} />
-            <RatingScale label="جودة التغليف" subLabels={['سيئة', 'ممتازة']} value={formData.التغليف} onChange={(v) => handleRatingChange('التغليف', v)} />
-            <RatingScale label="النقل والتعبئة" subLabels={['سيئة', 'ممتازة']} value={formData.النقل_والتعبئة} onChange={(v) => handleRatingChange('النقل_والتعبئة', v)} />
-            <RatingScale label="الالتزام بالوقت" subLabels={['متأخر دائماً', 'في الموعد']} value={formData.الالتزام_في_الوقت} onChange={(v) => handleRatingChange('الالتزام_في_الوقت', v)} />
-            <RatingScale label="توصي بالتعامل معه مستقبلاً؟" subLabels={['لا أوصي', 'أوصي بشدة']} value={formData.التوصية_بتكرار_التعامل_في_الأعوام_القادمة} onChange={(v) => handleRatingChange('التوصية_بتكرار_التعامل_في_الأعوام_القادمة', v)} />
+            <RatingScale label="النظافة" subLabels={['سيئة', 'ممتازة']} value={formData.النظافة} onChange={(v) => handleRatingChange('النظافة', v)} />
+            <RatingScale label="التكييف" subLabels={['سيء', 'ممتاز']} value={formData.التكييف} onChange={(v) => handleRatingChange('التكييف', v)} />
+            <RatingScale label="الرائحة" subLabels={['سيئة', 'ممتازة']} value={formData.الرائحة} onChange={(v) => handleRatingChange('الرائحة', v)} />
+            <RatingScale label="الإنارة" subLabels={['ضعيفة', 'ممتازة']} value={formData.الإنارة} onChange={(v) => handleRatingChange('الإنارة', v)} />
+            <RatingScale label="المظهر العام الداخلي" subLabels={['سيء', 'ممتاز']} value={formData.المظهر_العام_الداخلي} onChange={(v) => handleRatingChange('المظهر_العام_الداخلي', v)} />
+            <RatingScale label="المظهر العام الخارجي" subLabels={['سيء', 'ممتاز']} value={formData.المظهر_العام_الخارجي} onChange={(v) => handleRatingChange('المظهر_العام_الخارجي', v)} />
+            <RatingScale label="مدخل المسجد" subLabels={['سيء', 'ممتاز']} value={formData.مدخل_المسجد} onChange={(v) => handleRatingChange('مدخل_المسجد', v)} />
+            <RatingScale label="مواقف السيارات" subLabels={['سيئة', 'ممتازة']} value={formData.مواقف_السيارت} onChange={(v) => handleRatingChange('مواقف_السيارت', v)} />
         </div>
       </div>
       
@@ -152,7 +161,7 @@ const VisitForm: React.FC<{ mosques: MosqueInfo[], days: DayInfo[], onSave: (dat
             <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-xl">📝</div>
             <label className="text-xl font-black text-[#003366]">ملاحظات عامة</label>
          </div>
-         <textarea name="ملاحظات_عامة_على_الوجبة_المقدمة_أو_أصنافها" value={formData.ملاحظات_عامة_على_الوجبة_المقدمة_أو_أصنافها} onChange={handleChange} rows={4} className="w-full px-8 py-6 bg-slate-50 rounded-[2rem] outline-none focus:bg-white border-2 border-transparent focus:border-[#0054A6] font-bold text-[#003366] text-lg shadow-inner" placeholder="صف تجربتك مع المورد، أو أي اقتراحات للتحسين..." />
+         <textarea name="ملاحظات_عامة" value={formData.ملاحظات_عامة} onChange={handleChange} rows={4} className="w-full px-8 py-6 bg-slate-50 rounded-[2rem] outline-none focus:bg-white border-2 border-transparent focus:border-[#0054A6] font-bold text-[#003366] text-lg shadow-inner" placeholder="صف تجربتك أو أي اقتراحات للتحسين..." />
       </div>
 
       <div className="fixed bottom-10 left-0 right-0 px-4 z-[50] pointer-events-none">

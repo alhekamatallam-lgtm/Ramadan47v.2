@@ -28,16 +28,14 @@ const VisitResults: React.FC<{ records: VisitRecord[], mosques: MosqueInfo[], on
   const [selectedMosque, setSelectedMosque] = useState<string>('all');
 
   const evaluationCriteria = {
-    حرارة_الوجبة: 'حرارة الوجبة',
-    الرز: 'جودة الأرز',
-    الدجاج: 'جودة الدجاج',
-    السمبوسة: 'جودة السمبوسة',
-    الشوربة: 'جودة الشوربة',
-    تنوع_أصناف_الوجبة: 'تنوع الأصناف',
-    التغليف: 'جودة التغليف',
-    النقل_والتعبئة: 'النقل والتعبئة',
-    الالتزام_في_الوقت: 'الالتزام بالوقت',
-    التوصية_بتكرار_التعامل_في_الأعوام_القادمة: 'التوصية بالتعامل مستقبلاً'
+    النظافة: 'النظافة',
+    التكييف: 'التكييف',
+    الرائحة: 'الرائحة',
+    الإنارة: 'الإنارة',
+    المظهر_العام_الداخلي: 'المظهر الداخلي',
+    المظهر_العام_الخارجي: 'المظهر الخارجي',
+    مدخل_المسجد: 'مدخل المسجد',
+    مواقف_السيارت: 'مواقف السيارات',
   };
 
   const filteredRecords = useMemo(() => {
@@ -72,8 +70,8 @@ const VisitResults: React.FC<{ records: VisitRecord[], mosques: MosqueInfo[], on
 
   const generalNotes = useMemo(() => {
     return filteredRecords
-      .filter(r => r.ملاحظات_عامة_على_الوجبة_المقدمة_أو_أصنافها && r.ملاحظات_عامة_على_الوجبة_المقدمة_أو_أصنافها.trim() !== '')
-      .map(r => ({ note: r.ملاحظات_عامة_على_الوجبة_المقدمة_أو_أصنافها, mosque: r.المسجد, evaluator: r.الاسم_الكريم }));
+      .filter(r => r.ملاحظات_عامة && r.ملاحظات_عامة.trim() !== '')
+      .map(r => ({ note: r.ملاحظات_عامة, mosque: r.المسجد, evaluator: r.الاسم_الكريم }));
   }, [filteredRecords]);
 
   const totalAverage = useMemo(() => {

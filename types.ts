@@ -78,23 +78,21 @@ export interface FastEvalRecord {
 }
 
 export interface VisitRecord {
-  رقم_السجل: string;
+  record_id: string;
   الاسم_الكريم: string;
   اليوم: string;
   mosque_code: string;
   المسجد: string;
   "نوع الموقع": string;
-  حرارة_الوجبة: number | string;
-  الرز: number | string;
-  الدجاج: number | string;
-  السمبوسة: number | string;
-  الشوربة: number | string;
-  تنوع_أصناف_الوجبة: number | string;
-  التغليف: number | string;
-  النقل_والتعبئة: number | string;
-  الالتزام_في_الوقت: number | string;
-  التوصية_بتكرار_التعامل_في_الأعوام_القادمة: number | string;
-  ملاحظات_عامة_على_الوجبة_المقدمة_أو_أصنافها: string;
+  النظافة: number | string;
+  التكييف: number | string;
+  الرائحة: number | string;
+  الإنارة: number | string;
+  المظهر_العام_الداخلي: number | string;
+  المظهر_العام_الخارجي: number | string;
+  مدخل_المسجد: number | string;
+  مواقف_السيارت: number | string; // Note: Typo in API is 'السيارت', kept for consistency
+  ملاحظات_عامة: string;
   created_at?: string;
 }
 
