@@ -28,6 +28,7 @@ interface ActivityReportsProps {
 const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, days, onBack }) => {
   const [selectedMosque, setSelectedMosque] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<string>(days[0]?.code_day || '');
+  const [activeTab, setActiveTab] = useState<'iftar' | 'worshippers'>('iftar');
 
   const chartData = useMemo(() => {
     let filtered = records;
@@ -65,21 +66,30 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
       return {
         name: m.المسجد,
         iftar: Number(record?.عدد_وجبات_الافطار_فعلي || 0),
+        worshippers: Number(record?.عدد_المصلين_رجال || 0) + Number(record?.عدد_المصلين_نساء || 0),
         code: m.mosque_code
       };
-    }).filter(d => d.iftar > 0)
-      .sort((a, b) => b.iftar - a.iftar);
-  }, [records, mosques, selectedDay]);
+    }).filter(d => activeTab === 'iftar' ? d.iftar > 0 : d.worshippers > 0)
+      .sort((a, b) => activeTab === 'iftar' ? b.iftar - a.iftar : b.worshippers - a.worshippers);
+  }, [records, mosques, selectedDay, activeTab]);
 
   const trend = useMemo(() => {
     if (chartData.length < 2) return { type: 'neutral', value: 0 };
-    const last = chartData[chartData.length - 1].iftar;
-    const prev = chartData[chartData.length - 2].iftar;
+    const last = activeTab === 'iftar' ? chartData[chartData.length - 1].iftar : chartData[chartData.length - 1].worshippers;
+    const prev = activeTab === 'iftar' ? chartData[chartData.length - 2].iftar : chartData[chartData.length - 2].worshippers;
     const diff = last - prev;
     if (diff > 0) return { type: 'up', value: diff };
     if (diff < 0) return { type: 'down', value: Math.abs(diff) };
     return { type: 'neutral', value: 0 };
-  }, [chartData]);
+  }, [chartData, activeTab]);
+
+  const totalValue = useMemo(() => {
+    return chartData.reduce((sum, d) => sum + (activeTab === 'iftar' ? d.iftar : d.worshippers), 0);
+  }, [chartData, activeTab]);
+
+  const averageValue = useMemo(() => {
+    return chartData.length > 0 ? Math.round(totalValue / chartData.length) : 0;
+  }, [totalValue, chartData.length]);
 
   return (
     <div className="space-y-8 animate-in fade-in text-right" dir="rtl">
@@ -94,6 +104,21 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
             <h2 className="text-3xl font-black text-[#003366]">تقارير الأداء والنمو</h2>
             <p className="text-slate-400 text-sm font-bold">تحليل بياني لتطور وجبات الإفطار وأعداد المصلين</p>
           </div>
+        </div>
+
+        <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 gap-1">
+          <button 
+            onClick={() => setActiveTab('iftar')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'iftar' ? 'bg-[#0054A6] text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+          >
+            🍱 وجبات الإفطار
+          </button>
+          <button 
+            onClick={() => setActiveTab('worshippers')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'worshippers' ? 'bg-[#0054A6] text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+          >
+            👥 أعداد المصلين
+          </button>
         </div>
 
         <div className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 w-full md:w-auto">
@@ -116,9 +141,11 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-2 h-full bg-[#0054A6]"></div>
-            <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">إجمالي وجبات الإفطار</h3>
+            <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">
+              {activeTab === 'iftar' ? 'إجمالي وجبات الإفطار' : 'إجمالي عدد المصلين'}
+            </h3>
             <div className="text-4xl font-black text-[#003366] mb-4">
-              {chartData.reduce((sum, d) => sum + d.iftar, 0).toLocaleString('ar-SA')}
+              {totalValue.toLocaleString('ar-SA')}
             </div>
             
             <div className="flex items-center gap-2">
@@ -145,12 +172,11 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
 
           <div className="bg-[#003366] p-8 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
-             <h3 className="text-white/50 text-xs font-black uppercase tracking-widest mb-2">متوسط الوجبات يومياً</h3>
+             <h3 className="text-white/50 text-xs font-black uppercase tracking-widest mb-2">
+               {activeTab === 'iftar' ? 'متوسط الوجبات يومياً' : 'متوسط المصلين يومياً'}
+             </h3>
              <div className="text-4xl font-black mb-4">
-               {chartData.length > 0 
-                 ? Math.round(chartData.reduce((sum, d) => sum + d.iftar, 0) / chartData.length).toLocaleString('ar-SA')
-                 : 0
-               }
+               {averageValue.toLocaleString('ar-SA')}
              </div>
              <p className="text-white/60 text-xs font-bold">بناءً على {chartData.length} أيام من البيانات المسجلة</p>
           </div>
@@ -167,8 +193,8 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
             </div>
             <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
                <div className="flex items-center gap-1">
-                 <div className="w-3 h-3 rounded-full bg-[#0054A6]"></div>
-                 <span>وجبات الإفطار</span>
+                 <div className={`w-3 h-3 rounded-full ${activeTab === 'iftar' ? 'bg-[#0054A6]' : 'bg-[#C5A059]'}`}></div>
+                 <span>{activeTab === 'iftar' ? 'وجبات الإفطار' : 'أعداد المصلين'}</span>
                </div>
             </div>
           </div>
@@ -177,9 +203,9 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorIftar" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0054A6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#0054A6" stopOpacity={0}/>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={activeTab === 'iftar' ? '#0054A6' : '#C5A059'} stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor={activeTab === 'iftar' ? '#0054A6' : '#C5A059'} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
@@ -209,12 +235,12 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                 />
                 <Area 
                   type="monotone" 
-                  dataKey="iftar" 
-                  name="وجبات الإفطار"
-                  stroke="#0054A6" 
+                  dataKey={activeTab === 'iftar' ? 'iftar' : 'worshippers'} 
+                  name={activeTab === 'iftar' ? 'وجبات الإفطار' : 'أعداد المصلين'}
+                  stroke={activeTab === 'iftar' ? '#0054A6' : '#C5A059'} 
                   strokeWidth={4}
                   fillOpacity={1} 
-                  fill="url(#colorIftar)" 
+                  fill="url(#colorValue)" 
                   animationDuration={1500}
                 />
               </AreaChart>
@@ -234,20 +260,23 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
             <thead>
               <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
                 <th className="px-8 py-4">اليوم</th>
-                <th className="px-8 py-4 text-center">وجبات الإفطار</th>
+                <th className="px-8 py-4 text-center">
+                  {activeTab === 'iftar' ? 'وجبات الإفطار' : 'أعداد المصلين'}
+                </th>
                 <th className="px-8 py-4 text-center">التغير</th>
                 <th className="px-8 py-4 text-center">الحالة</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {chartData.map((d, i) => {
-                const prev = i > 0 ? chartData[i-1].iftar : null;
-                const diff = prev !== null ? d.iftar - prev : 0;
+                const val = activeTab === 'iftar' ? d.iftar : d.worshippers;
+                const prev = i > 0 ? (activeTab === 'iftar' ? chartData[i-1].iftar : chartData[i-1].worshippers) : null;
+                const diff = prev !== null ? val - prev : 0;
                 
                 return (
                   <tr key={d.code} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5 font-bold text-[#003366]">{d.name}</td>
-                    <td className="px-8 py-5 text-center font-black text-slate-700 tabular-nums">{d.iftar.toLocaleString('ar-SA')}</td>
+                    <td className="px-8 py-5 text-center font-black text-slate-700 tabular-nums">{val.toLocaleString('ar-SA')}</td>
                     <td className="px-8 py-5 text-center">
                       {prev !== null ? (
                         <div className={`flex items-center justify-center gap-1 font-bold text-xs ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-600' : 'text-slate-400'}`}>
@@ -281,7 +310,9 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
               <LayoutGrid className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-[#003366]">توزيع الوجبات حسب المسجد</h3>
+              <h3 className="text-xl font-black text-[#003366]">
+                {activeTab === 'iftar' ? 'توزيع الوجبات حسب المسجد' : 'توزيع المصلين حسب المسجد'}
+              </h3>
               <p className="text-slate-400 text-[10px] font-bold">مقارنة أداء المساجد في يوم محدد</p>
             </div>
           </div>
@@ -324,9 +355,14 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                     textAlign: 'right'
                   }}
                 />
-                <Bar dataKey="iftar" name="عدد الوجبات" radius={[0, 10, 10, 0]} barSize={25}>
+                <Bar 
+                  dataKey={activeTab === 'iftar' ? 'iftar' : 'worshippers'} 
+                  name={activeTab === 'iftar' ? 'عدد الوجبات' : 'عدد المصلين'} 
+                  radius={[0, 10, 10, 0]} 
+                  barSize={25}
+                >
                   {mosqueDistributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 0 ? '#C5A059' : '#0054A6'} />
+                    <Cell key={`cell-${index}`} fill={index === 0 ? '#C5A059' : (activeTab === 'iftar' ? '#0054A6' : '#C5A059')} />
                   ))}
                 </Bar>
               </BarChart>
