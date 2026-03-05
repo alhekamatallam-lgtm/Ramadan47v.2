@@ -16,7 +16,7 @@ import {
   Bar,
   Cell
 } from 'recharts';
-import { TrendingUp, TrendingDown, Minus, BarChart3, MapPin, Calendar, LayoutGrid } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, BarChart3, MapPin, Calendar, LayoutGrid, Droplets, Users, ShieldCheck } from 'lucide-react';
 
 interface ActivityReportsProps {
   records: MosqueRecord[];
@@ -91,6 +91,19 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
     return chartData.length > 0 ? Math.round(totalValue / chartData.length) : 0;
   }, [totalValue, chartData.length]);
 
+  const extraStats = useMemo(() => {
+    let filtered = records;
+    if (selectedMosque) {
+      filtered = records.filter(r => r.mosque_code === selectedMosque);
+    }
+    
+    return {
+      water: filtered.reduce((sum, r) => sum + Number(r.عدد_كراتين_ماء || 0), 0),
+      volunteers: filtered.reduce((sum, r) => sum + Number(r.عدد_المتطوعين || 0), 0),
+      supervisors: filtered.reduce((sum, r) => sum + Number(r["عدد المشرفين"] || 0), 0),
+    };
+  }, [records, selectedMosque]);
+
   return (
     <div className="space-y-8 animate-in fade-in text-right" dir="rtl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -133,6 +146,47 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
               <option key={m.mosque_code} value={m.mosque_code}>{m.المسجد}</option>
             ))}
           </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-[2rem] shadow-lg border border-slate-100 flex items-center gap-5 hover:shadow-xl transition-shadow">
+          <div className="w-14 h-14 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center shadow-sm">
+            <Droplets className="w-7 h-7" />
+          </div>
+          <div>
+            <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">بطاقة السقيا</h4>
+            <div className="text-2xl font-black text-[#003366] tabular-nums">
+              {extraStats.water.toLocaleString('en-US')}
+            </div>
+            <p className="text-[10px] text-slate-400 font-bold">إجمالي كراتين الماء</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-[2rem] shadow-lg border border-slate-100 flex items-center gap-5 hover:shadow-xl transition-shadow">
+          <div className="w-14 h-14 bg-violet-50 text-violet-500 rounded-2xl flex items-center justify-center shadow-sm">
+            <Users className="w-7 h-7" />
+          </div>
+          <div>
+            <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">بطاقة المتطوعين</h4>
+            <div className="text-2xl font-black text-[#003366] tabular-nums">
+              {extraStats.volunteers.toLocaleString('en-US')}
+            </div>
+            <p className="text-[10px] text-slate-400 font-bold">إجمالي المتطوعين</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-[2rem] shadow-lg border border-slate-100 flex items-center gap-5 hover:shadow-xl transition-shadow">
+          <div className="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center shadow-sm">
+            <ShieldCheck className="w-7 h-7" />
+          </div>
+          <div>
+            <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">بطاقة المشرفين</h4>
+            <div className="text-2xl font-black text-[#003366] tabular-nums">
+              {extraStats.supervisors.toLocaleString('en-US')}
+            </div>
+            <p className="text-[10px] text-slate-400 font-bold">إجمالي المشرفين</p>
+          </div>
         </div>
       </div>
 
