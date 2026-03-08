@@ -14,9 +14,10 @@ interface DashboardProps {
   onNavigateToMaintenance: () => void;
   onNavigateToFastEval: () => void;
   onNavigateToVisit: () => void;
+  onNavigateToGallery: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, onNavigateToRecords, onNavigateToAdd, onNavigateToMaintenance, onNavigateToFastEval, onNavigateToVisit }) => {
+const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, onNavigateToRecords, onNavigateToAdd, onNavigateToMaintenance, onNavigateToFastEval, onNavigateToVisit, onNavigateToGallery }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
 
@@ -106,6 +107,14 @@ const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, o
             <p className="text-slate-500 text-sm mt-2">تسجيل تفاصيل الزيارات وتقييم الوجبات</p>
           </div>
         </button>
+
+        <button onClick={onNavigateToGallery} className="group bg-white text-[#003366] p-10 rounded-[3rem] shadow-xl border-2 border-slate-100 flex flex-col items-center text-center gap-6 transition-all hover:translate-y-[-4px] active:scale-95 border-b-8 border-slate-200">
+          <div className="w-20 h-20 bg-[#003366]/5 rounded-[2rem] flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">🖼️</div>
+          <div>
+            <h3 className="text-2xl font-black text-[#003366]">معرض الصور الميداني</h3>
+            <p className="text-slate-500 text-sm mt-2">التوثيق البصري للأنشطة والخدمات</p>
+          </div>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -128,7 +137,7 @@ const StatCard = ({ label, value, color, icon }: { label: string, value: number,
       <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label}</span>
       <span className="text-xl">{icon}</span>
     </div>
-    <h4 className="text-4xl font-black tabular-nums" style={{ color }}>{value.toLocaleString('ar-SA')}</h4>
+    <h4 className="text-4xl font-black tabular-nums" style={{ color }}>{value.toLocaleString('en-US')}</h4>
   </div>
 );
 

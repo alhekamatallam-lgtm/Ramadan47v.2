@@ -134,9 +134,9 @@ const MaintenanceDashboard: React.FC<MaintenanceDashboardProps> = ({ records, mo
                   </td>
                   <td className="px-4 py-5 font-bold text-[#003366] whitespace-nowrap text-sm">{r.المسجد || 'غير محدد'}</td>
                   <td className="px-4 py-5 font-bold text-slate-600 whitespace-nowrap">{r.اليوم || r.label || r.label_day || 'غير محدد'}</td>
-                  <td className="px-4 py-5 font-black text-slate-600 tabular-nums">{r.أعمال_الصيانة_عدد || 0}</td>
-                  <td className="px-4 py-5 font-black text-slate-600 tabular-nums">{r.أعمال_النظافة_عدد || 0}</td>
-                  <td className="px-4 py-5 font-black text-slate-600 tabular-nums">{r.عدد_كراتين_الماء_الواقعي || 0}</td>
+                  <td className="px-4 py-5 font-black text-slate-600 tabular-nums">{Number(r.أعمال_الصيانة_عدد || 0).toLocaleString('en-US')}</td>
+                  <td className="px-4 py-5 font-black text-slate-600 tabular-nums">{Number(r.أعمال_النظافة_عدد || 0).toLocaleString('en-US')}</td>
+                  <td className="px-4 py-5 font-black text-slate-600 tabular-nums">{Number(r.عدد_كراتين_الماء_الواقعي || 0).toLocaleString('en-US')}</td>
                   <td className="px-4 py-5 whitespace-nowrap">
                     <span className={`text-[9px] font-black px-3 py-1 rounded-full border ${getStatusStyle(r.الاعتماد || '')}`}>
                       {r.الاعتماد || 'قيد المراجعة'}

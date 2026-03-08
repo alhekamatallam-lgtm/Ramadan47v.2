@@ -139,12 +139,12 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                   </td>
                   <td className="px-8 py-6 text-center">
                     <div className="font-black text-slate-700 text-lg tabular-nums">
-                      {(Number(record.عدد_المصلين_رجال || 0) + Number(record.عدد_المصلين_نساء || 0)).toLocaleString('ar-SA')}
+                      {(Number(record.عدد_المصلين_رجال || 0) + Number(record.عدد_المصلين_نساء || 0)).toLocaleString('en-US')}
                     </div>
                   </td>
                   <td className="px-8 py-6 text-center">
                     <div className="font-black text-slate-700 text-lg tabular-nums">
-                      {Number(record.عدد_وجبات_الافطار_فعلي || 0).toLocaleString('ar-SA')}
+                      {Number(record.عدد_وجبات_الافطار_فعلي || 0).toLocaleString('en-US')}
                     </div>
                   </td>
                   <td className="px-8 py-6 text-center whitespace-nowrap">

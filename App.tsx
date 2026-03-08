@@ -14,8 +14,9 @@ import VisitForm from './components/VisitForm.tsx';
 import VisitResults from './components/VisitResults.tsx';
 import { TrendingUp, TrendingDown, Minus, BarChart3, MapPin, Calendar, LayoutGrid, Lock, Unlock } from 'lucide-react';
 import ActivityReports from './components/ActivityReports.tsx';
+import PhotoGallery from './components/PhotoGallery.tsx';
 
-type ViewState = 'dashboard' | 'list' | 'form' | 'maintenance' | 'maintenance_list' | 'fast_eval' | 'fast_eval_results' | 'visit' | 'visit_results' | 'reports';
+type ViewState = 'dashboard' | 'list' | 'form' | 'maintenance' | 'maintenance_list' | 'fast_eval' | 'fast_eval_results' | 'visit' | 'visit_results' | 'reports' | 'gallery';
 
 const App: React.FC = () => {
   const [isPlatformEntered, setIsPlatformEntered] = useState(false);
@@ -226,6 +227,7 @@ const App: React.FC = () => {
             <button onClick={() => setView('dashboard')} className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${view === 'dashboard' ? 'bg-[#0054A6] text-white shadow-md' : 'text-white/60 hover:text-white'}`}>الرئيسية</button>
             <button onClick={() => setView('list')} className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${view === 'list' ? 'bg-[#0054A6] text-white shadow-md' : 'text-white/60 hover:text-white'}`}>السجلات</button>
             <button onClick={() => setView('reports')} className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${view === 'reports' ? 'bg-[#0054A6] text-white shadow-md' : 'text-white/60 hover:text-white'}`}>التقارير</button>
+            <button onClick={() => setView('gallery')} className={`px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${view === 'gallery' ? 'bg-[#0054A6] text-white shadow-md' : 'text-white/60 hover:text-white'}`}>المعرض</button>
             {isAdmin && (
               <>
                 <button 
@@ -294,6 +296,7 @@ const App: React.FC = () => {
             onNavigateToMaintenance={() => setView('maintenance_list')}
             onNavigateToFastEval={() => { setEditingRecord(null); setView('fast_eval'); }}
             onNavigateToVisit={() => { setEditingRecord(null); setView('visit'); }}
+            onNavigateToGallery={() => setView('gallery')}
           />
         )}
         {view === 'list' && (
@@ -367,6 +370,13 @@ const App: React.FC = () => {
             records={approvedRecords}
             mosques={mosquesList}
             days={daysList}
+            onBack={() => setView('dashboard')}
+          />
+        )}
+        {view === 'gallery' && (
+          <PhotoGallery
+            photos={photosList}
+            mosques={mosquesList}
             onBack={() => setView('dashboard')}
           />
         )}

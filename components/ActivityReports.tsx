@@ -199,20 +199,20 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
               {activeTab === 'iftar' ? 'إجمالي وجبات الإفطار' : 'إجمالي عدد المصلين'}
             </h3>
             <div className="text-4xl font-black text-[#003366] mb-4">
-              {totalValue.toLocaleString('ar-SA')}
+              {totalValue.toLocaleString('en-US')}
             </div>
             
             <div className="flex items-center gap-2">
               {trend.type === 'up' && (
                 <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-xs font-bold">
                   <TrendingUp className="w-3 h-3" />
-                  <span>تزايد بمقدار {trend.value.toLocaleString('ar-SA')} عن اليوم السابق</span>
+                  <span>تزايد بمقدار {trend.value.toLocaleString('en-US')} عن اليوم السابق</span>
                 </div>
               )}
               {trend.type === 'down' && (
                 <div className="flex items-center gap-1 text-red-600 bg-red-50 px-3 py-1 rounded-full text-xs font-bold">
                   <TrendingDown className="w-3 h-3" />
-                  <span>تناقص بمقدار {trend.value.toLocaleString('ar-SA')} عن اليوم السابق</span>
+                  <span>تناقص بمقدار {trend.value.toLocaleString('en-US')} عن اليوم السابق</span>
                 </div>
               )}
               {trend.type === 'neutral' && (
@@ -230,7 +230,7 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                {activeTab === 'iftar' ? 'متوسط الوجبات يومياً' : 'متوسط المصلين يومياً'}
              </h3>
              <div className="text-4xl font-black mb-4">
-               {averageValue.toLocaleString('ar-SA')}
+               {averageValue.toLocaleString('en-US')}
              </div>
              <p className="text-white/60 text-xs font-bold">بناءً على {chartData.length} أيام من البيانات المسجلة</p>
           </div>
@@ -330,11 +330,11 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                 return (
                   <tr key={d.code} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-8 py-5 font-bold text-[#003366]">{d.name}</td>
-                    <td className="px-8 py-5 text-center font-black text-slate-700 tabular-nums">{val.toLocaleString('ar-SA')}</td>
+                    <td className="px-8 py-5 text-center font-black text-slate-700 tabular-nums">{val.toLocaleString('en-US')}</td>
                     <td className="px-8 py-5 text-center">
                       {prev !== null ? (
                         <div className={`flex items-center justify-center gap-1 font-bold text-xs ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-600' : 'text-slate-400'}`}>
-                          {diff > 0 ? '+' : ''}{diff.toLocaleString('ar-SA')}
+                          {diff > 0 ? '+' : ''}{diff.toLocaleString('en-US')}
                           {diff > 0 ? <TrendingUp className="w-3 h-3" /> : diff < 0 ? <TrendingDown className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
                         </div>
                       ) : <span className="text-slate-300">-</span>}

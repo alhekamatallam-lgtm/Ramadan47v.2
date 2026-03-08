@@ -6,7 +6,7 @@ import InputGroup from './InputGroup.tsx';
 const getTodayHijri = () => {
   try {
     const today = new Date();
-    const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+    const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn', {
       day: 'numeric', month: 'long', year: 'numeric'
     });
     return formatter.format(today).replace('هـ', '').trim();

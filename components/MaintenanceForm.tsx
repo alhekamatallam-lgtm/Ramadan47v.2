@@ -125,7 +125,7 @@ const MaintenanceForm: React.FC<any> = ({ initialData, mosques, days, isAdmin, o
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">التاريخ</label>
-              <input type="text" value={new Date(formData.التاريخ).toLocaleDateString('ar-SA')} readOnly className="px-4 py-3 border-2 border-slate-100 rounded-lg bg-slate-50 font-bold text-slate-400" />
+              <input type="text" value={new Date(formData.التاريخ).toLocaleDateString('en-US')} readOnly className="px-4 py-3 border-2 border-slate-100 rounded-lg bg-slate-50 font-bold text-slate-400" />
             </div>
           </InputGroup>
 
