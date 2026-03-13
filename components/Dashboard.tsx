@@ -35,6 +35,16 @@ const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, o
     const femaleStudents = parseInt(String(r.عدد_طالبات_الحلقات), 10) || 0;
     return sum + maleStudents + femaleStudents;
   }, 0);
+    const totalItikaf = records.reduce((sum, r) => {
+    const men = parseInt(String(r.عدد_المعتكفين_رجال), 10) || 0;
+    const women = parseInt(String(r.عدد_المعتكفين_نساء), 10) || 0;
+    return sum + men + women;
+  }, 0);
+    const totalSuhoor = records.reduce((sum, r) => {
+    const men = parseInt(String(r.عدد_وجبات_السحور_رجال), 10) || 0;
+    const women = parseInt(String(r.عدد_وجبات_السحور_نساء), 10) || 0;
+    return sum + men + women;
+  }, 0);
 
   const handleAiAnalysis = async () => {
     setIsAnalyzing(true);
@@ -124,6 +134,8 @@ const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, o
         </button>
         <StatCard label="إجمالي المصلين" value={totalWorshippers} color="#0054A6" icon="👥" />
         <StatCard label="وجبات الإفطار" value={totalIftarMeals} color="#C5A059" icon="🍱" />
+        <StatCard label="المعتكفين" value={totalItikaf} color="#6366F1" icon="🌙" />
+        <StatCard label="وجبات السحور" value={totalSuhoor} color="#10B981" icon="🍲" />
         <StatCard label="طلاب الحلقات" value={totalStudents} color="#003366" icon="📖" />
       </div>
     </div>

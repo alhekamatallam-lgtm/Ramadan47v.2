@@ -118,6 +118,8 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                 <th className="px-8 py-6 text-right">اليوم / الليلة</th>
                 <th className="px-8 py-6 text-center">إجمالي المصلين</th>
                 <th className="px-8 py-6 text-center">وجبات الإفطار</th>
+                <th className="px-8 py-6 text-center">المعتكفين</th>
+                <th className="px-8 py-6 text-center">وجبات السحور</th>
                 <th className="px-8 py-6 text-center">الحالة</th>
                 <th className="px-8 py-6 text-center">الإجراء</th>
               </tr>
@@ -145,6 +147,16 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                   <td className="px-8 py-6 text-center">
                     <div className="font-black text-slate-700 text-lg tabular-nums">
                       {Number(record.عدد_وجبات_الافطار_فعلي || 0).toLocaleString('en-US')}
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-center">
+                    <div className="font-black text-indigo-600 text-lg tabular-nums">
+                      {(Number(record.عدد_المعتكفين_رجال || 0) + Number(record.عدد_المعتكفين_نساء || 0)).toLocaleString('en-US')}
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-center">
+                    <div className="font-black text-emerald-600 text-lg tabular-nums">
+                      {(Number(record.عدد_وجبات_السحور_رجال || 0) + Number(record.عدد_وجبات_السحور_نساء || 0)).toLocaleString('en-US')}
                     </div>
                   </td>
                   <td className="px-8 py-6 text-center whitespace-nowrap">
