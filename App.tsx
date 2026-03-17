@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { mosqueApi } from './services/api.ts';
-import { MosqueRecord, MaintenanceRecord, PhotoRecord, MosqueInfo, DayInfo, FastEvalRecord, VisitRecord } from './types.ts';
+import { MosqueRecord, MaintenanceRecord, PhotoRecord, MosqueInfo, DayInfo, FastEvalRecord, VisitRecord, EidRecord } from './types.ts';
 import RecordList from './components/RecordList.tsx';
 import RecordForm from './components/RecordForm.tsx';
 import MaintenanceForm from './components/MaintenanceForm.tsx';
@@ -12,11 +12,12 @@ import FastEvalForm from './components/FastEvalForm.tsx';
 import FastEvalResults from './components/FastEvalResults.tsx';
 import VisitForm from './components/VisitForm.tsx';
 import VisitResults from './components/VisitResults.tsx';
+import EidForm from './components/EidForm.tsx';
 import { TrendingUp, TrendingDown, Minus, BarChart3, MapPin, Calendar, LayoutGrid, Lock, Unlock } from 'lucide-react';
 import ActivityReports from './components/ActivityReports.tsx';
-import PhotoGallery from './components/PhotoGallery.tsx';
+import MediaGallery from './components/MediaGallery.tsx';
 
-type ViewState = 'dashboard' | 'list' | 'form' | 'maintenance' | 'maintenance_list' | 'fast_eval' | 'fast_eval_results' | 'visit' | 'visit_results' | 'reports' | 'gallery';
+type ViewState = 'dashboard' | 'list' | 'form' | 'maintenance' | 'maintenance_list' | 'fast_eval' | 'fast_eval_results' | 'visit' | 'visit_results' | 'reports' | 'gallery' | 'eid' | 'eid_list';
 
 const App: React.FC = () => {
   const [isPlatformEntered, setIsPlatformEntered] = useState(false);
@@ -25,6 +26,7 @@ const App: React.FC = () => {
   const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
   const [fastEvalRecords, setFastEvalRecords] = useState<FastEvalRecord[]>([]);
   const [visitRecords, setVisitRecords] = useState<VisitRecord[]>([]);
+  const [eidRecords, setEidRecords] = useState<EidRecord[]>([]);
   const [photosList, setPhotosList] = useState<PhotoRecord[]>([]);
   const [mosquesList, setMosquesList] = useState<MosqueInfo[]>([]);
   const [daysList, setDaysList] = useState<DayInfo[]>([]);
@@ -44,9 +46,15 @@ const App: React.FC = () => {
         setMaintenanceRecords(response.sheets.Maintenance_Report || []);
         setPhotosList(response.sheets.photo || []);
         setMosquesList(response.sheets.mosque || []);
-        setDaysList(response.sheets.Dayd || []);
+        const days = response.sheets.Dayd || [];
+        const hasEidDay = days.some((d: any) => d.code_day === 'DAY_Eid');
+        if (!hasEidDay) {
+          days.push({ code_day: 'DAY_Eid', label: 'يوم العيد' });
+        }
+        setDaysList(days);
         setFastEvalRecords(response.sheets.Fast_eval || []);
         setVisitRecords(response.sheets.Visit || []);
+        setEidRecords(response.sheets.eid_report || []);
       }
     } catch (error) {
       showNotification('خطأ في تحميل البيانات', 'error');
@@ -83,7 +91,7 @@ const App: React.FC = () => {
       let payload = { ...data };
       // Only add 'الاعتماد' for specific sheets if the user is not an admin.
       // Other sheets like 'Visit' and 'Fast_eval' do not have this field.
-      if (!isAdmin && (data.sheet === 'daily_mosque_report' || data.sheet === 'Maintenance_Report')) {
+      if (!isAdmin && (data.sheet === 'daily_mosque_report' || data.sheet === 'Maintenance_Report' || data.sheet === 'eid_report')) {
         payload.الاعتماد = 'قيد المراجعة';
       }
 
@@ -155,6 +163,40 @@ const App: React.FC = () => {
         const payload = {
           ...recordToUpdate,
           sheet: 'Maintenance_Report',
+          الاعتماد: newStatus,
+        };
+        return mosqueApi.save(payload);
+      });
+
+      const results = await Promise.all(promises);
+      const successfulUpdates = results.filter(res => res && res.success).length;
+
+      if (successfulUpdates > 0) {
+        showNotification(`تم تحديث ${successfulUpdates} سجلات بنجاح`, 'success');
+        await fetchData();
+      }
+
+      if (successfulUpdates < recordIds.length) {
+        showNotification('فشل تحديث بعض السجلات', 'error');
+      }
+    } catch (error) {
+      showNotification('حدث خطأ أثناء التحديث المجمع', 'error');
+      console.error("Bulk update error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEidBulkUpdate = async (recordIds: string[], newStatus: 'يعتمد' | 'مرفوض') => {
+    setLoading(true);
+    try {
+      const promises = recordIds.map(record_id => {
+        const recordToUpdate = eidRecords.find(r => r.record_id === record_id);
+        if (!recordToUpdate) return Promise.resolve(null);
+
+        const payload = {
+          ...recordToUpdate,
+          sheet: 'eid_report',
           الاعتماد: newStatus,
         };
         return mosqueApi.save(payload);
@@ -288,6 +330,7 @@ const App: React.FC = () => {
         {view === 'dashboard' && (
           <Dashboard 
             records={approvedRecords} 
+            eidRecords={eidRecords.filter(r => r.الاعتماد === 'يعتمد' || r.الاعتماد === 'معتمد')}
             mosques={mosquesList} 
             days={daysList} 
             photos={photosList}
@@ -296,6 +339,7 @@ const App: React.FC = () => {
             onNavigateToMaintenance={() => setView('maintenance_list')}
             onNavigateToFastEval={() => { setEditingRecord(null); setView('fast_eval'); }}
             onNavigateToVisit={() => { setEditingRecord(null); setView('visit'); }}
+            onNavigateToEid={() => { setEditingRecord(null); setView('eid'); }}
             onNavigateToGallery={() => setView('gallery')}
           />
         )}
@@ -368,13 +412,35 @@ const App: React.FC = () => {
         {view === 'reports' && (
           <ActivityReports
             records={approvedRecords}
+            eidRecords={eidRecords.filter(r => r.الاعتماد === 'يعتمد' || r.الاعتماد === 'معتمد')}
             mosques={mosquesList}
             days={daysList}
             onBack={() => setView('dashboard')}
           />
         )}
+        {view === 'eid' && (
+          <EidForm
+            initialData={editingRecord}
+            mosques={mosquesList}
+            isAdmin={isAdmin}
+            onSave={(data) => handleSave({ ...data, sheet: 'eid_report' })}
+            onCancel={handleCancel}
+          />
+        )}
+        {view === 'eid_list' && (
+          <RecordList 
+            records={eidRecords} 
+            mosques={mosquesList}
+            days={daysList}
+            isAdmin={isAdmin}
+            isEid={true}
+            onEdit={(r) => {setEditingRecord(r); setView('eid');}} 
+            onAddNew={() => {setEditingRecord(null); setView('eid');}} 
+            onBulkUpdate={handleEidBulkUpdate}
+          />
+        )}
         {view === 'gallery' && (
-          <PhotoGallery
+          <MediaGallery
             photos={photosList}
             mosques={mosquesList}
             onBack={() => setView('dashboard')}

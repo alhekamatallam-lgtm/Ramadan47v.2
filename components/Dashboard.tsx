@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { MosqueRecord, MosqueInfo, DayInfo, PhotoRecord } from '../types.ts';
+import { MosqueRecord, MosqueInfo, DayInfo, PhotoRecord, EidRecord } from '../types.ts';
 import ImageSlider from './ImageSlider.tsx';
 import { analyzeFieldData } from '../services/ai.ts';
 
 interface DashboardProps {
   records: MosqueRecord[];
+  eidRecords: EidRecord[];
   mosques: MosqueInfo[];
   days: DayInfo[];
   photos: PhotoRecord[];
@@ -14,10 +15,11 @@ interface DashboardProps {
   onNavigateToMaintenance: () => void;
   onNavigateToFastEval: () => void;
   onNavigateToVisit: () => void;
+  onNavigateToEid: () => void;
   onNavigateToGallery: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, onNavigateToRecords, onNavigateToAdd, onNavigateToMaintenance, onNavigateToFastEval, onNavigateToVisit, onNavigateToGallery }) => {
+const Dashboard: React.FC<DashboardProps> = ({ records, eidRecords, mosques, days, photos, onNavigateToRecords, onNavigateToAdd, onNavigateToMaintenance, onNavigateToFastEval, onNavigateToVisit, onNavigateToEid, onNavigateToGallery }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
 
@@ -43,6 +45,14 @@ const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, o
     const totalSuhoor = records.reduce((sum, r) => {
     const men = parseInt(String(r.عدد_وجبات_السحور_رجال), 10) || 0;
     const women = parseInt(String(r.عدد_وجبات_السحور_نساء), 10) || 0;
+    return sum + men + women;
+  }, 0);
+
+  const totalEidGifts = eidRecords.reduce((sum, r) => sum + (parseInt(String(r.عدد_هدايا_العيد), 10) || 0), 0);
+  const totalEidWater = eidRecords.reduce((sum, r) => sum + (parseInt(String(r.السقيا), 10) || 0), 0);
+  const totalEidWorshippers = eidRecords.reduce((sum, r) => {
+    const men = parseInt(String(r.عدد_المصلين_رجال), 10) || 0;
+    const women = parseInt(String(r.عدد_المصلين_نساء), 10) || 0;
     return sum + men + women;
   }, 0);
 
@@ -118,10 +128,18 @@ const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, o
           </div>
         </button>
 
+        <button onClick={onNavigateToEid} className="group bg-[#003366] text-white p-10 rounded-[3rem] shadow-2xl shadow-[#003366]/20 flex flex-col items-center text-center gap-6 transition-all hover:translate-y-[-4px] active:scale-95 border-b-8 border-[#001a33]">
+          <div className="w-20 h-20 bg-[#C5A059] rounded-[2rem] flex items-center justify-center text-3xl group-hover:rotate-12 transition-transform shadow-xl">🎉</div>
+          <div>
+            <h3 className="text-2xl font-black">رصد تقرير العيد</h3>
+            <p className="text-white/60 text-sm mt-2">إحصائيات المصلين وهدايا العيد والسقيا</p>
+          </div>
+        </button>
+
         <button onClick={onNavigateToGallery} className="group bg-white text-[#003366] p-10 rounded-[3rem] shadow-xl border-2 border-slate-100 flex flex-col items-center text-center gap-6 transition-all hover:translate-y-[-4px] active:scale-95 border-b-8 border-slate-200">
           <div className="w-20 h-20 bg-[#003366]/5 rounded-[2rem] flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">🖼️</div>
           <div>
-            <h3 className="text-2xl font-black text-[#003366]">معرض الصور الميداني</h3>
+            <h3 className="text-2xl font-black text-[#003366]">معرض الوسائط (صور وفيديو)</h3>
             <p className="text-slate-500 text-sm mt-2">التوثيق البصري للأنشطة والخدمات</p>
           </div>
         </button>
@@ -137,6 +155,9 @@ const Dashboard: React.FC<DashboardProps> = ({ records, mosques, days, photos, o
         <StatCard label="المعتكفين" value={totalItikaf} color="#6366F1" icon="🌙" />
         <StatCard label="وجبات السحور" value={totalSuhoor} color="#10B981" icon="🍲" />
         <StatCard label="طلاب الحلقات" value={totalStudents} color="#003366" icon="📖" />
+        <StatCard label="هدايا العيد" value={totalEidGifts} color="#C5A059" icon="🎁" />
+        <StatCard label="سقيا العيد" value={totalEidWater} color="#0054A6" icon="💧" />
+        <StatCard label="مصلين العيد" value={totalEidWorshippers} color="#003366" icon="🕌" />
       </div>
     </div>
   );

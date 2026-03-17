@@ -91,3 +91,20 @@ export const INITIAL_VISIT_RECORD: any = {
   مواقف_السيارت: '',
   ملاحظات_عامة: '',
 };
+
+export const INITIAL_EID_RECORD: any = {
+  record_id: '',
+  created_at: '',
+  label_day: 'يوم العيد',
+  code_day: 'DAY_Eid',
+  mosque_code: '',
+  المسجد: '',
+  "نوع الموقع": '',
+  تاريخ_هجري: '',
+  عدد_المصلين_رجال: '',
+  عدد_المصلين_نساء: '',
+  عدد_هدايا_العيد: '',
+  السقيا: '',
+  ملاحظات: '',
+  الاعتماد: 'قيد المراجعة',
+};

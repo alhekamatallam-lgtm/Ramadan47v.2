@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { MosqueRecord, MosqueInfo, DayInfo } from '../types.ts';
+import { MosqueRecord, MosqueInfo, DayInfo, EidRecord } from '../types.ts';
 import { 
   LineChart, 
   Line, 
@@ -20,15 +20,24 @@ import { TrendingUp, TrendingDown, Minus, BarChart3, MapPin, Calendar, LayoutGri
 
 interface ActivityReportsProps {
   records: MosqueRecord[];
+  eidRecords: EidRecord[];
   mosques: MosqueInfo[];
   days: DayInfo[];
   onBack: () => void;
 }
 
-const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, days, onBack }) => {
+const ActivityReports: React.FC<ActivityReportsProps> = ({ records, eidRecords, mosques, days, onBack }) => {
   const [selectedMosque, setSelectedMosque] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<string>(days[0]?.code_day || '');
-  const [activeTab, setActiveTab] = useState<'iftar' | 'worshippers' | 'itikaf' | 'suhoor'>('iftar');
+  const [activeTab, setActiveTab] = useState<'iftar' | 'worshippers' | 'itikaf' | 'suhoor' | 'eid'>('iftar');
+  
+  React.useEffect(() => {
+    if (activeTab === 'eid') {
+      setSelectedDay('DAY_Eid');
+    } else if (selectedDay === 'DAY_Eid') {
+      setSelectedDay(days[0]?.code_day || '');
+    }
+  }, [activeTab]);
 
   const chartData = useMemo(() => {
     let filtered = records;
@@ -47,15 +56,23 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
       const itikaf = dayRecords.reduce((sum, r) => sum + Number(r.عدد_المعتكفين_رجال || 0) + Number(r.عدد_المعتكفين_نساء || 0), 0);
       const suhoor = dayRecords.reduce((sum, r) => sum + Number(r.عدد_وجبات_السحور_رجال || 0) + Number(r.عدد_وجبات_السحور_نساء || 0), 0);
 
+      const eidDayRecords = eidRecords.filter(r => r.code_day === dayCode);
+      const eidGifts = eidDayRecords.reduce((sum, r) => sum + Number(r.عدد_هدايا_العيد || 0), 0);
+      const eidWater = eidDayRecords.reduce((sum, r) => sum + Number(r.السقيا || 0), 0);
+      const eidWorshippers = eidDayRecords.reduce((sum, r) => sum + Number(r.عدد_المصلين_رجال || 0) + Number(r.عدد_المصلين_نساء || 0), 0);
+
       return {
         name: dayLabel,
         iftar: iftarMeals,
         worshippers: worshippers,
         itikaf: itikaf,
         suhoor: suhoor,
+        eidGifts: eidGifts,
+        eidWater: eidWater,
+        eidWorshippers: eidWorshippers,
         code: dayCode
       };
-    }).filter(d => d.iftar > 0 || d.worshippers > 0 || d.itikaf > 0 || d.suhoor > 0);
+    }).filter(d => d.iftar > 0 || d.worshippers > 0 || d.itikaf > 0 || d.suhoor > 0 || d.eidGifts > 0 || d.eidWater > 0 || d.eidWorshippers > 0);
 
     return grouped;
   }, [records, selectedMosque, days]);
@@ -64,15 +81,20 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
     if (!selectedDay) return [];
 
     const dayRecords = records.filter(r => r.code_day === selectedDay);
+    const eidDayRecords = eidRecords.filter(r => r.code_day === selectedDay);
     
     return mosques.map(m => {
       const record = dayRecords.find(r => r.mosque_code === m.mosque_code);
+      const eidRecord = eidDayRecords.find(r => r.mosque_code === m.mosque_code);
       return {
         name: m.المسجد,
         iftar: Number(record?.عدد_وجبات_الافطار_فعلي || 0),
         worshippers: Number(record?.عدد_المصلين_رجال || 0) + Number(record?.عدد_المصلين_نساء || 0),
         itikaf: Number(record?.عدد_المعتكفين_رجال || 0) + Number(record?.عدد_المعتكفين_نساء || 0),
         suhoor: Number(record?.عدد_وجبات_السحور_رجال || 0) + Number(record?.عدد_وجبات_السحور_نساء || 0),
+        eidGifts: Number(eidRecord?.عدد_هدايا_العيد || 0),
+        eidWater: Number(eidRecord?.السقيا || 0),
+        eidWorshippers: Number(eidRecord?.عدد_المصلين_رجال || 0) + Number(eidRecord?.عدد_المصلين_نساء || 0),
         code: m.mosque_code
       };
     }).filter(d => {
@@ -80,6 +102,7 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
       if (activeTab === 'worshippers') return d.worshippers > 0;
       if (activeTab === 'itikaf') return d.itikaf > 0;
       if (activeTab === 'suhoor') return d.suhoor > 0;
+      if (activeTab === 'eid') return d.eidGifts > 0 || d.eidWater > 0 || d.eidWorshippers > 0;
       return false;
     })
       .sort((a, b) => {
@@ -87,6 +110,7 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
         if (activeTab === 'worshippers') return b.worshippers - a.worshippers;
         if (activeTab === 'itikaf') return b.itikaf - a.itikaf;
         if (activeTab === 'suhoor') return b.suhoor - a.suhoor;
+        if (activeTab === 'eid') return b.eidGifts - a.eidGifts;
         return 0;
       });
   }, [records, mosques, selectedDay, activeTab]);
@@ -98,6 +122,7 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
       if (activeTab === 'worshippers') return d.worshippers;
       if (activeTab === 'itikaf') return d.itikaf;
       if (activeTab === 'suhoor') return d.suhoor;
+      if (activeTab === 'eid') return d.eidGifts;
       return 0;
     };
     const last = getVal(chartData[chartData.length - 1]);
@@ -114,6 +139,7 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
       if (activeTab === 'worshippers') return sum + d.worshippers;
       if (activeTab === 'itikaf') return sum + d.itikaf;
       if (activeTab === 'suhoor') return sum + d.suhoor;
+      if (activeTab === 'eid') return sum + d.eidGifts;
       return sum;
     }, 0);
   }, [chartData, activeTab]);
@@ -174,6 +200,12 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
             className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${activeTab === 'suhoor' ? 'bg-[#0054A6] text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
           >
             🍲 وجبات السحور
+          </button>
+          <button 
+            onClick={() => setActiveTab('eid')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all whitespace-nowrap ${activeTab === 'eid' ? 'bg-[#C5A059] text-white shadow-md' : 'text-slate-400 hover:bg-slate-50'}`}
+          >
+            🎉 تقرير العيد
           </button>
         </div>
 
@@ -241,7 +273,8 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
             <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">
               {activeTab === 'iftar' ? 'إجمالي وجبات الإفطار' : 
                activeTab === 'worshippers' ? 'إجمالي عدد المصلين' :
-               activeTab === 'itikaf' ? 'إجمالي المعتكفين' : 'إجمالي وجبات السحور'}
+               activeTab === 'itikaf' ? 'إجمالي المعتكفين' : 
+               activeTab === 'suhoor' ? 'إجمالي وجبات السحور' : 'إجمالي هدايا العيد'}
             </h3>
             <div className="text-4xl font-black text-[#003366] mb-4">
               {totalValue.toLocaleString('en-US')}
@@ -274,7 +307,8 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
              <h3 className="text-white/50 text-xs font-black uppercase tracking-widest mb-2">
                {activeTab === 'iftar' ? 'متوسط الوجبات يومياً' : 
                 activeTab === 'worshippers' ? 'متوسط المصلين يومياً' :
-                activeTab === 'itikaf' ? 'متوسط المعتكفين يومياً' : 'متوسط السحور يومياً'}
+                activeTab === 'itikaf' ? 'متوسط المعتكفين يومياً' : 
+                activeTab === 'suhoor' ? 'متوسط السحور يومياً' : 'متوسط هدايا العيد'}
              </h3>
              <div className="text-4xl font-black mb-4">
                {averageValue.toLocaleString('en-US')}
@@ -297,12 +331,14 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                  <div className={`w-3 h-3 rounded-full ${
                    activeTab === 'iftar' ? 'bg-[#0054A6]' : 
                    activeTab === 'worshippers' ? 'bg-[#C5A059]' :
-                   activeTab === 'itikaf' ? 'bg-indigo-500' : 'bg-emerald-500'
+                   activeTab === 'itikaf' ? 'bg-indigo-500' : 
+                   activeTab === 'suhoor' ? 'bg-emerald-500' : 'bg-[#C5A059]'
                  }`}></div>
                  <span>{
                    activeTab === 'iftar' ? 'وجبات الإفطار' : 
                    activeTab === 'worshippers' ? 'أعداد المصلين' :
-                   activeTab === 'itikaf' ? 'المعتكفين' : 'وجبات السحور'
+                   activeTab === 'itikaf' ? 'المعتكفين' : 
+                   activeTab === 'suhoor' ? 'وجبات السحور' : 'هدايا العيد'
                  }</span>
                </div>
             </div>
@@ -347,17 +383,20 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                   dataKey={
                     activeTab === 'iftar' ? 'iftar' : 
                     activeTab === 'worshippers' ? 'worshippers' :
-                    activeTab === 'itikaf' ? 'itikaf' : 'suhoor'
+                    activeTab === 'itikaf' ? 'itikaf' : 
+                    activeTab === 'suhoor' ? 'suhoor' : 'eidGifts'
                   } 
                   name={
                     activeTab === 'iftar' ? 'وجبات الإفطار' : 
                     activeTab === 'worshippers' ? 'أعداد المصلين' :
-                    activeTab === 'itikaf' ? 'المعتكفين' : 'وجبات السحور'
+                    activeTab === 'itikaf' ? 'المعتكفين' : 
+                    activeTab === 'suhoor' ? 'وجبات السحور' : 'هدايا العيد'
                   }
                   stroke={
                     activeTab === 'iftar' ? '#0054A6' : 
                     activeTab === 'worshippers' ? '#C5A059' :
-                    activeTab === 'itikaf' ? '#6366F1' : '#10B981'
+                    activeTab === 'itikaf' ? '#6366F1' : 
+                    activeTab === 'suhoor' ? '#10B981' : '#C5A059'
                   } 
                   strokeWidth={4}
                   fillOpacity={1} 
@@ -384,7 +423,8 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                 <th className="px-8 py-4 text-center">
                   {activeTab === 'iftar' ? 'وجبات الإفطار' : 
                    activeTab === 'worshippers' ? 'أعداد المصلين' :
-                   activeTab === 'itikaf' ? 'المعتكفين' : 'وجبات السحور'}
+                   activeTab === 'itikaf' ? 'المعتكفين' : 
+                   activeTab === 'suhoor' ? 'وجبات السحور' : 'هدايا العيد'}
                 </th>
                 <th className="px-8 py-4 text-center">التغير</th>
                 <th className="px-8 py-4 text-center">الحالة</th>
@@ -397,6 +437,7 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                   if (activeTab === 'worshippers') return item.worshippers;
                   if (activeTab === 'itikaf') return item.itikaf;
                   if (activeTab === 'suhoor') return item.suhoor;
+                  if (activeTab === 'eid') return item.eidGifts;
                   return 0;
                 };
                 const val = getVal(d);
@@ -491,12 +532,14 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                   dataKey={
                     activeTab === 'iftar' ? 'iftar' : 
                     activeTab === 'worshippers' ? 'worshippers' :
-                    activeTab === 'itikaf' ? 'itikaf' : 'suhoor'
+                    activeTab === 'itikaf' ? 'itikaf' : 
+                    activeTab === 'suhoor' ? 'suhoor' : 'eidGifts'
                   } 
                   name={
                     activeTab === 'iftar' ? 'عدد الوجبات' : 
                     activeTab === 'worshippers' ? 'عدد المصلين' :
-                    activeTab === 'itikaf' ? 'عدد المعتكفين' : 'عدد وجبات السحور'
+                    activeTab === 'itikaf' ? 'عدد المعتكفين' : 
+                    activeTab === 'suhoor' ? 'عدد وجبات السحور' : 'عدد هدايا العيد'
                   } 
                   radius={[0, 10, 10, 0]} 
                   barSize={25}
@@ -505,7 +548,8 @@ const ActivityReports: React.FC<ActivityReportsProps> = ({ records, mosques, day
                     <Cell key={`cell-${index}`} fill={index === 0 ? '#C5A059' : (
                       activeTab === 'iftar' ? '#0054A6' : 
                       activeTab === 'worshippers' ? '#C5A059' :
-                      activeTab === 'itikaf' ? '#6366F1' : '#10B981'
+                      activeTab === 'itikaf' ? '#6366F1' : 
+                      activeTab === 'suhoor' ? '#10B981' : '#C5A059'
                     )} />
                   ))}
                 </Bar>

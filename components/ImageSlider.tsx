@@ -6,36 +6,50 @@ interface ImageSliderProps {
   photos: PhotoRecord[];
 }
 
+// Smart Media Detection
+const isVideo = (url: string): boolean => {
+  if (!url) return false;
+  const videoExtensions = ['.mp4', '.mov', '.webm', '.mkv', '.avi', '.quicktime', '.m4v'];
+  const lowercaseUrl = url.toLowerCase();
+  const hasVideoExtension = videoExtensions.some(ext => lowercaseUrl.endsWith(ext));
+  if (hasVideoExtension) return true;
+  if (lowercaseUrl.includes('/video/upload/')) return true;
+  return false;
+};
+
 const ImageSlider: React.FC<ImageSliderProps> = ({ photos }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Filter for images only for the main slider
+  const imageOnlyPhotos = photos.filter(p => !isVideo(p.secure_url));
+
   const goToPrevious = () => {
     const isFirstSlide = currentIndex === 0;
-    const newIndex = isFirstSlide ? photos.length - 1 : currentIndex - 1;
+    const newIndex = isFirstSlide ? imageOnlyPhotos.length - 1 : currentIndex - 1;
     setCurrentIndex(newIndex);
   };
 
   const goToNext = () => {
-    const isLastSlide = currentIndex === photos.length - 1;
+    const isLastSlide = currentIndex === imageOnlyPhotos.length - 1;
     const newIndex = isLastSlide ? 0 : currentIndex + 1;
     setCurrentIndex(newIndex);
   };
 
   useEffect(() => {
-    if (photos.length === 0) return;
+    if (imageOnlyPhotos.length === 0) return;
     const interval = setInterval(() => {
       goToNext();
     }, 5000);
     return () => clearInterval(interval);
-  }, [photos, currentIndex]);
+  }, [imageOnlyPhotos, currentIndex]);
 
-  if (photos.length === 0) return null;
+  if (imageOnlyPhotos.length === 0) return null;
 
   return (
     <div className="relative w-full h-[300px] sm:h-[450px] rounded-[3rem] overflow-hidden shadow-2xl group">
       {/* Images container */}
       <div className="relative w-full h-full flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(${currentIndex * 100}%)` }}>
-        {photos.map((photo, index) => (
+        {imageOnlyPhotos.map((photo, index) => (
           <div key={photo.public_id} className="min-w-full h-full relative">
             <img 
               src={photo.webp_url || photo.secure_url} 
@@ -77,7 +91,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({ photos }) => {
 
       {/* Dots */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-        {photos.map((_, i) => (
+        {imageOnlyPhotos.map((_, i) => (
           <button 
             key={i} 
             onClick={() => setCurrentIndex(i)}

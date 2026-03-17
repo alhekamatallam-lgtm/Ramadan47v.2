@@ -1,15 +1,16 @@
 
 import React, { useState, useMemo } from 'react';
-import { MosqueRecord, MosqueInfo, DayInfo } from '../types.ts';
+import { MosqueRecord, MosqueInfo, DayInfo, EidRecord } from '../types.ts';
 
 interface RecordListProps {
-  records: MosqueRecord[];
+  records: (MosqueRecord | EidRecord)[];
   mosques: MosqueInfo[];
   days: DayInfo[];
   isAdmin: boolean;
-  onEdit: (record: MosqueRecord) => void;
+  onEdit: (record: any) => void;
   onAddNew: () => void;
   onBulkUpdate: (recordIds: string[], newStatus: 'يعتمد' | 'مرفوض') => void;
+  isEid?: boolean;
 }
 
 const getStatusStyle = (status: string) => {
@@ -22,8 +23,12 @@ const getStatusStyle = (status: string) => {
   }
 };
 
-const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin, onEdit, onAddNew, onBulkUpdate }) => {
-  const [filters, setFilters] = useState({ mosque: '', day: '', status: '' });
+const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin, onEdit, onAddNew, onBulkUpdate, isEid = false }) => {
+  const [filters, setFilters] = useState({ 
+    mosque: '', 
+    day: isEid ? 'DAY_Eid' : '', 
+    status: '' 
+  });
   const [selected, setSelected] = useState<string[]>([]);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -67,7 +72,7 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <div>
-             <h1 className="text-2xl font-black text-[#003366]">سجلات الأنشطة الميدانية</h1>
+             <h1 className="text-2xl font-black text-[#003366]">{isEid ? 'سجلات تقارير العيد' : 'سجلات الأنشطة الميدانية'}</h1>
              {isAdmin && <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-widest mt-1 block">وضع المسؤول مفعل 🔐</span>}
           </div>
           <button onClick={onAddNew} className="p-4 bg-[#0054A6] text-white rounded-2xl shadow-lg hover:scale-105 transition-all flex items-center gap-2">
@@ -117,9 +122,18 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                 <th className="px-8 py-6 text-right">المسجد</th>
                 <th className="px-8 py-6 text-right">اليوم / الليلة</th>
                 <th className="px-8 py-6 text-center">إجمالي المصلين</th>
-                <th className="px-8 py-6 text-center">وجبات الإفطار</th>
-                <th className="px-8 py-6 text-center">المعتكفين</th>
-                <th className="px-8 py-6 text-center">وجبات السحور</th>
+                {isEid ? (
+                  <>
+                    <th className="px-8 py-6 text-center">هدايا العيد</th>
+                    <th className="px-8 py-6 text-center">السقيا</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="px-8 py-6 text-center">وجبات الإفطار</th>
+                    <th className="px-8 py-6 text-center">المعتكفين</th>
+                    <th className="px-8 py-6 text-center">وجبات السحور</th>
+                  </>
+                )}
                 <th className="px-8 py-6 text-center">الحالة</th>
                 <th className="px-8 py-6 text-center">الإجراء</th>
               </tr>
@@ -141,24 +155,41 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                   </td>
                   <td className="px-8 py-6 text-center">
                     <div className="font-black text-slate-700 text-lg tabular-nums">
-                      {(Number(record.عدد_المصلين_رجال || 0) + Number(record.عدد_المصلين_نساء || 0)).toLocaleString('en-US')}
+                      {(Number((record as any).عدد_المصلين_رجال || 0) + Number((record as any).عدد_المصلين_نساء || 0)).toLocaleString('en-US')}
                     </div>
                   </td>
-                  <td className="px-8 py-6 text-center">
-                    <div className="font-black text-slate-700 text-lg tabular-nums">
-                      {Number(record.عدد_وجبات_الافطار_فعلي || 0).toLocaleString('en-US')}
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-center">
-                    <div className="font-black text-indigo-600 text-lg tabular-nums">
-                      {(Number(record.عدد_المعتكفين_رجال || 0) + Number(record.عدد_المعتكفين_نساء || 0)).toLocaleString('en-US')}
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-center">
-                    <div className="font-black text-emerald-600 text-lg tabular-nums">
-                      {(Number(record.عدد_وجبات_السحور_رجال || 0) + Number(record.عدد_وجبات_السحور_نساء || 0)).toLocaleString('en-US')}
-                    </div>
-                  </td>
+                  {isEid ? (
+                    <>
+                      <td className="px-8 py-6 text-center">
+                        <div className="font-black text-[#C5A059] text-lg tabular-nums">
+                          {Number((record as any).عدد_هدايا_العيد || 0).toLocaleString('en-US')}
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-center">
+                        <div className="font-black text-blue-600 text-lg tabular-nums">
+                          {Number((record as any).السقيا || 0).toLocaleString('en-US')}
+                        </div>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-8 py-6 text-center">
+                        <div className="font-black text-slate-700 text-lg tabular-nums">
+                          {Number((record as any).عدد_وجبات_الافطار_فعلي || 0).toLocaleString('en-US')}
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-center">
+                        <div className="font-black text-indigo-600 text-lg tabular-nums">
+                          {(Number((record as any).عدد_المعتكفين_رجال || 0) + Number((record as any).عدد_المعتكفين_نساء || 0)).toLocaleString('en-US')}
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-center">
+                        <div className="font-black text-emerald-600 text-lg tabular-nums">
+                          {(Number((record as any).عدد_وجبات_السحور_رجال || 0) + Number((record as any).عدد_وجبات_السحور_نساء || 0)).toLocaleString('en-US')}
+                        </div>
+                      </td>
+                    </>
+                  )}
                   <td className="px-8 py-6 text-center whitespace-nowrap">
                     <span className={`text-[10px] font-black px-4 py-1.5 rounded-full border shadow-sm ${getStatusStyle(record.الاعتماد || '')}`}>
                       {record.الاعتماد || 'قيد المراجعة'}
