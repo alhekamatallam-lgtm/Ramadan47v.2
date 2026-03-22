@@ -138,6 +138,34 @@ const EidForm: React.FC<EidFormProps> = ({ initialData, mosques, isAdmin, onSave
             </div>
           </InputGroup>
 
+          {isAdmin && (
+            <div className="bg-[#003366] p-10 rounded-[3rem] shadow-2xl text-white border-b-8 border-[#C5A059]">
+              <h3 className="text-xl font-black mb-6 flex items-center gap-3">
+                <span className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">🔐</span>
+                اعتماد تقرير العيد
+              </h3>
+              <div className="flex flex-col gap-4">
+                <label className="text-[10px] font-black text-white/50 uppercase tracking-widest mr-2">تغيير حالة الاعتماد</label>
+                <div className="relative">
+                  <select 
+                    name="الاعتماد"
+                    value={formData.الاعتماد || 'قيد المراجعة'} 
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 rounded-lg font-black outline-none border-2 transition-all appearance-none cursor-pointer ${
+                      formData.الاعتماد === 'يعتمد' ? 'bg-emerald-500 border-emerald-400 text-white' : 
+                      formData.الاعتماد === 'مرفوض' ? 'bg-red-500 border-red-400 text-white' : 
+                      'bg-white/10 border-white/20 text-white'
+                    }`}
+                  >
+                    <option value="قيد المراجعة" className="text-slate-800">قيد المراجعة</option>
+                    <option value="يعتمد" className="text-slate-800">يعتمد ✅</option>
+                    <option value="مرفوض" className="text-slate-800">مرفوض ❌</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
              <div className="flex items-center gap-4 mb-6">
                 <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-xl">📝</div>
@@ -153,7 +181,7 @@ const EidForm: React.FC<EidFormProps> = ({ initialData, mosques, isAdmin, onSave
                   onClick={handleFormSubmit} 
                   className="pointer-events-auto flex-grow bg-[#C5A059] text-white py-4 rounded-2xl font-bold text-base shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all border-b-4 border-[#ad8949]"
                 >
-                  📤 إرسال تقرير العيد
+                  {isAdmin ? '💾 حفظ التعديلات والاعتماد النهائي' : '📤 إرسال تقرير العيد'}
                 </button>
                 <button
                   type="button"

@@ -8,7 +8,7 @@ interface RecordListProps {
   days: DayInfo[];
   isAdmin: boolean;
   onEdit: (record: any) => void;
-  onAddNew: () => void;
+  onAddNew: (type: string) => void;
   onBulkUpdate: (recordIds: string[], newStatus: 'يعتمد' | 'مرفوض') => void;
   isEid?: boolean;
 }
@@ -27,7 +27,8 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
   const [filters, setFilters] = useState({ 
     mosque: '', 
     day: isEid ? 'DAY_Eid' : '', 
-    status: '' 
+    status: '',
+    formType: isEid ? 'eid' : 'daily'
   });
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -42,10 +43,22 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
         const mosqueMatch = !filters.mosque || r.mosque_code === filters.mosque;
         const dayMatch = !filters.day || r.code_day === filters.day;
         const statusMatch = !filters.status || (r.الاعتماد || 'قيد المراجعة') === filters.status;
-        return mosqueMatch && dayMatch && statusMatch;
+        
+        // Determine form type of the record
+        let recordType = 'daily';
+        if ('عدد_هدايا_العيد' in r) recordType = 'eid';
+        if ('أعمال_الصيانة_عدد' in r) recordType = 'maintenance';
+        
+        const typeMatch = !filters.formType || recordType === filters.formType;
+        
+        return mosqueMatch && dayMatch && statusMatch && typeMatch;
       })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [records, filters]);
+
+  // Update isEid based on filter if we are in a combined view
+  const currentIsEid = filters.formType === 'eid';
+  const currentIsMaintenance = filters.formType === 'maintenance';
 
   const handleSelect = (recordId: string) => {
     setSelected(prev => 
@@ -72,10 +85,14 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <div>
-             <h1 className="text-2xl font-black text-[#003366]">{isEid ? 'سجلات تقارير العيد' : 'سجلات الأنشطة الميدانية'}</h1>
+             <h1 className="text-2xl font-black text-[#003366]">
+               {filters.formType === 'eid' ? 'سجلات تقارير العيد' : 
+                filters.formType === 'maintenance' ? 'سجلات الصيانة والنظافة' : 
+                'سجلات الأنشطة الميدانية'}
+             </h1>
              {isAdmin && <span className="text-[10px] font-black text-[#C5A059] uppercase tracking-widest mt-1 block">وضع المسؤول مفعل 🔐</span>}
           </div>
-          <button onClick={onAddNew} className="p-4 bg-[#0054A6] text-white rounded-2xl shadow-lg hover:scale-105 transition-all flex items-center gap-2">
+          <button onClick={() => onAddNew(filters.formType)} className="p-4 bg-[#0054A6] text-white rounded-2xl shadow-lg hover:scale-105 transition-all flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
             </svg>
@@ -83,7 +100,12 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
           </button>
         </div>
         
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <select name="formType" value={filters.formType} onChange={handleFilterChange} className="w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl font-bold outline-none focus:border-[#0054A6] shadow-sm appearance-none text-[#0054A6]">
+            <option value="daily">تقرير المسجد اليومي</option>
+            <option value="eid">تقرير صلاة العيد</option>
+            <option value="maintenance">تقرير الصيانة والنظافة</option>
+          </select>
           <select name="mosque" value={filters.mosque} onChange={handleFilterChange} className="w-full px-4 py-3 bg-white border-2 border-slate-100 rounded-xl font-bold outline-none focus:border-[#0054A6] shadow-sm appearance-none">
             <option value="">كل المساجد</option>
             {(mosques || []).map(m => <option key={m.mosque_code} value={m.mosque_code}>{m.المسجد}</option>)}
@@ -121,17 +143,27 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                 </th>
                 <th className="px-8 py-6 text-right">المسجد</th>
                 <th className="px-8 py-6 text-right">اليوم / الليلة</th>
-                <th className="px-8 py-6 text-center">إجمالي المصلين</th>
-                {isEid ? (
+                {currentIsMaintenance ? (
                   <>
-                    <th className="px-8 py-6 text-center">هدايا العيد</th>
-                    <th className="px-8 py-6 text-center">السقيا</th>
+                    <th className="px-8 py-6 text-center">أعمال صيانة</th>
+                    <th className="px-8 py-6 text-center">أعمال نظافة</th>
+                    <th className="px-8 py-6 text-center">كراتين الماء</th>
                   </>
                 ) : (
                   <>
-                    <th className="px-8 py-6 text-center">وجبات الإفطار</th>
-                    <th className="px-8 py-6 text-center">المعتكفين</th>
-                    <th className="px-8 py-6 text-center">وجبات السحور</th>
+                    <th className="px-8 py-6 text-center">إجمالي المصلين</th>
+                    {currentIsEid ? (
+                      <>
+                        <th className="px-8 py-6 text-center">هدايا العيد</th>
+                        <th className="px-8 py-6 text-center">السقيا</th>
+                      </>
+                    ) : (
+                      <>
+                        <th className="px-8 py-6 text-center">وجبات الإفطار</th>
+                        <th className="px-8 py-6 text-center">المعتكفين</th>
+                        <th className="px-8 py-6 text-center">وجبات السحور</th>
+                      </>
+                    )}
                   </>
                 )}
                 <th className="px-8 py-6 text-center">الحالة</th>
@@ -150,24 +182,24 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                   </td>
                   <td className="px-8 py-6 whitespace-nowrap">
                     <span className="text-xs font-black text-[#0054A6] bg-[#0054A6]/10 px-4 py-2 rounded-xl inline-block">
-                      {record.label_day || record.code_day}
+                      {record.label_day || record.code_day || (record as any).اليوم || (record as any).label}
                     </span>
                   </td>
-                  <td className="px-8 py-6 text-center">
-                    <div className="font-black text-slate-700 text-lg tabular-nums">
-                      {(Number((record as any).عدد_المصلين_رجال || 0) + Number((record as any).عدد_المصلين_نساء || 0)).toLocaleString('en-US')}
-                    </div>
-                  </td>
-                  {isEid ? (
+                  {currentIsMaintenance ? (
                     <>
                       <td className="px-8 py-6 text-center">
-                        <div className="font-black text-[#C5A059] text-lg tabular-nums">
-                          {Number((record as any).عدد_هدايا_العيد || 0).toLocaleString('en-US')}
+                        <div className="font-black text-slate-700 text-lg tabular-nums">
+                          {Number((record as any).أعمال_الصيانة_عدد || 0).toLocaleString('en-US')}
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-center">
+                        <div className="font-black text-slate-700 text-lg tabular-nums">
+                          {Number((record as any).أعمال_النظافة_عدد || 0).toLocaleString('en-US')}
                         </div>
                       </td>
                       <td className="px-8 py-6 text-center">
                         <div className="font-black text-blue-600 text-lg tabular-nums">
-                          {Number((record as any).السقيا || 0).toLocaleString('en-US')}
+                          {Number((record as any).عدد_كراتين_الماء_الواقعي || 0).toLocaleString('en-US')}
                         </div>
                       </td>
                     </>
@@ -175,19 +207,41 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                     <>
                       <td className="px-8 py-6 text-center">
                         <div className="font-black text-slate-700 text-lg tabular-nums">
-                          {Number((record as any).عدد_وجبات_الافطار_فعلي || 0).toLocaleString('en-US')}
+                          {(Number((record as any).عدد_المصلين_رجال || 0) + Number((record as any).عدد_المصلين_نساء || 0)).toLocaleString('en-US')}
                         </div>
                       </td>
-                      <td className="px-8 py-6 text-center">
-                        <div className="font-black text-indigo-600 text-lg tabular-nums">
-                          {(Number((record as any).عدد_المعتكفين_رجال || 0) + Number((record as any).عدد_المعتكفين_نساء || 0)).toLocaleString('en-US')}
-                        </div>
-                      </td>
-                      <td className="px-8 py-6 text-center">
-                        <div className="font-black text-emerald-600 text-lg tabular-nums">
-                          {(Number((record as any).عدد_وجبات_السحور_رجال || 0) + Number((record as any).عدد_وجبات_السحور_نساء || 0)).toLocaleString('en-US')}
-                        </div>
-                      </td>
+                      {currentIsEid ? (
+                        <>
+                          <td className="px-8 py-6 text-center">
+                            <div className="font-black text-[#C5A059] text-lg tabular-nums">
+                              {Number((record as any).عدد_هدايا_العيد || 0).toLocaleString('en-US')}
+                            </div>
+                          </td>
+                          <td className="px-8 py-6 text-center">
+                            <div className="font-black text-blue-600 text-lg tabular-nums">
+                              {Number((record as any).السقيا || 0).toLocaleString('en-US')}
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-8 py-6 text-center">
+                            <div className="font-black text-slate-700 text-lg tabular-nums">
+                              {Number((record as any).عدد_وجبات_الافطار_فعلي || 0).toLocaleString('en-US')}
+                            </div>
+                          </td>
+                          <td className="px-8 py-6 text-center">
+                            <div className="font-black text-indigo-600 text-lg tabular-nums">
+                              {(Number((record as any).عدد_المعتكفين_رجال || 0) + Number((record as any).عدد_المعتكفين_نساء || 0)).toLocaleString('en-US')}
+                            </div>
+                          </td>
+                          <td className="px-8 py-6 text-center">
+                            <div className="font-black text-emerald-600 text-lg tabular-nums">
+                              {(Number((record as any).عدد_وجبات_السحور_رجال || 0) + Number((record as any).عدد_وجبات_السحور_نساء || 0)).toLocaleString('en-US')}
+                            </div>
+                          </td>
+                        </>
+                      )}
                     </>
                   )}
                   <td className="px-8 py-6 text-center whitespace-nowrap">
@@ -215,7 +269,7 @@ const RecordList: React.FC<RecordListProps> = ({ records, mosques, days, isAdmin
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center text-slate-400 font-bold">لا توجد سجلات مطابقة للبحث...</td>
+                  <td colSpan={currentIsMaintenance ? 8 : (currentIsEid ? 7 : 8)} className="px-8 py-20 text-center text-slate-400 font-bold">لا توجد سجلات مطابقة للبحث...</td>
                 </tr>
               )}
             </tbody>

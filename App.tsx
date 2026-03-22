@@ -187,16 +187,21 @@ const App: React.FC = () => {
     }
   };
 
-  const handleEidBulkUpdate = async (recordIds: string[], newStatus: 'يعتمد' | 'مرفوض') => {
+  const handleUnifiedBulkUpdate = async (recordIds: string[], newStatus: 'يعتمد' | 'مرفوض') => {
     setLoading(true);
     try {
+      const allRecords = [...records, ...maintenanceRecords, ...eidRecords];
       const promises = recordIds.map(record_id => {
-        const recordToUpdate = eidRecords.find(r => r.record_id === record_id);
+        const recordToUpdate = allRecords.find(r => r.record_id === record_id);
         if (!recordToUpdate) return Promise.resolve(null);
+
+        let sheet = 'Daily_Mosque_Report';
+        if ('عدد_هدايا_العيد' in recordToUpdate) sheet = 'eid_report';
+        if ('أعمال_الصيانة_عدد' in recordToUpdate) sheet = 'Maintenance_Report';
 
         const payload = {
           ...recordToUpdate,
-          sheet: 'eid_report',
+          sheet,
           الاعتماد: newStatus,
         };
         return mosqueApi.save(payload);
@@ -218,6 +223,28 @@ const App: React.FC = () => {
       console.error("Bulk update error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUnifiedEdit = (record: any) => {
+    setEditingRecord(record);
+    if ('عدد_هدايا_العيد' in record) {
+      setView('eid');
+    } else if ('أعمال_الصيانة_عدد' in record) {
+      setView('maintenance');
+    } else {
+      setView('form');
+    }
+  };
+
+  const handleUnifiedAddNew = (type: string) => {
+    setEditingRecord(null);
+    if (type === 'eid') {
+      setView('eid');
+    } else if (type === 'maintenance') {
+      setView('maintenance');
+    } else {
+      setView('form');
     }
   };
 
@@ -344,14 +371,14 @@ const App: React.FC = () => {
           />
         )}
         {view === 'list' && (
-                    <RecordList 
-            records={records} 
+          <RecordList 
+            records={[...records, ...maintenanceRecords, ...eidRecords]} 
             mosques={mosquesList}
             days={daysList}
             isAdmin={isAdmin}
-            onEdit={(r) => {setEditingRecord(r); setView('form');}} 
-            onAddNew={() => {setEditingRecord(null); setView('form');}} 
-            onBulkUpdate={handleDailyReportBulkUpdate}
+            onEdit={handleUnifiedEdit} 
+            onAddNew={handleUnifiedAddNew} 
+            onBulkUpdate={handleUnifiedBulkUpdate}
           />
         )}
         {view === 'form' && (
@@ -429,14 +456,14 @@ const App: React.FC = () => {
         )}
         {view === 'eid_list' && (
           <RecordList 
-            records={eidRecords} 
+            records={[...records, ...maintenanceRecords, ...eidRecords]} 
             mosques={mosquesList}
             days={daysList}
             isAdmin={isAdmin}
             isEid={true}
-            onEdit={(r) => {setEditingRecord(r); setView('eid');}} 
-            onAddNew={() => {setEditingRecord(null); setView('eid');}} 
-            onBulkUpdate={handleEidBulkUpdate}
+            onEdit={handleUnifiedEdit} 
+            onAddNew={handleUnifiedAddNew} 
+            onBulkUpdate={handleUnifiedBulkUpdate}
           />
         )}
         {view === 'gallery' && (
