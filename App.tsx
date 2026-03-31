@@ -358,6 +358,7 @@ const App: React.FC = () => {
           <Dashboard 
             records={approvedRecords} 
             eidRecords={eidRecords.filter(r => r.الاعتماد === 'يعتمد' || r.الاعتماد === 'معتمد')}
+            maintenanceRecords={maintenanceRecords}
             mosques={mosquesList} 
             days={daysList} 
             photos={photosList}
@@ -440,6 +441,7 @@ const App: React.FC = () => {
           <ActivityReports
             records={approvedRecords}
             eidRecords={eidRecords.filter(r => r.الاعتماد === 'يعتمد' || r.الاعتماد === 'معتمد')}
+            maintenanceRecords={maintenanceRecords}
             mosques={mosquesList}
             days={daysList}
             onBack={() => setView('dashboard')}

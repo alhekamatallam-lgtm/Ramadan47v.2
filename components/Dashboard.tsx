@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
-import { MosqueRecord, MosqueInfo, DayInfo, PhotoRecord, EidRecord } from '../types.ts';
+import { MosqueRecord, MosqueInfo, DayInfo, PhotoRecord, EidRecord, MaintenanceRecord } from '../types.ts';
 import ImageSlider from './ImageSlider.tsx';
 import { analyzeFieldData } from '../services/ai.ts';
 
 interface DashboardProps {
   records: MosqueRecord[];
   eidRecords: EidRecord[];
+  maintenanceRecords: MaintenanceRecord[];
   mosques: MosqueInfo[];
   days: DayInfo[];
   photos: PhotoRecord[];
@@ -19,9 +20,15 @@ interface DashboardProps {
   onNavigateToGallery: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ records, eidRecords, mosques, days, photos, onNavigateToRecords, onNavigateToAdd, onNavigateToMaintenance, onNavigateToFastEval, onNavigateToVisit, onNavigateToEid, onNavigateToGallery }) => {
+const Dashboard: React.FC<DashboardProps> = ({ records, eidRecords, maintenanceRecords, mosques, days, photos, onNavigateToRecords, onNavigateToAdd, onNavigateToMaintenance, onNavigateToFastEval, onNavigateToVisit, onNavigateToEid, onNavigateToGallery }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
+
+  const approvedMaintenance = maintenanceRecords.filter(r => r.الاعتماد === 'يعتمد' || r.الاعتماد === 'معتمد');
+
+  const totalMaintenance = approvedMaintenance.reduce((sum, r) => sum + (parseInt(String(r.أعمال_الصيانة_عدد), 10) || 0), 0);
+  const totalCleaning = approvedMaintenance.reduce((sum, r) => sum + (parseInt(String(r.أعمال_النظافة_عدد), 10) || 0), 0);
+  const totalWaterCartons = approvedMaintenance.reduce((sum, r) => sum + (parseInt(String(r.عدد_كراتين_الماء_الواقعي), 10) || 0), 0);
 
     const totalWorshippers = records.reduce((sum, r) => {
     const men = parseInt(String(r.عدد_المصلين_رجال), 10) || 0;
@@ -158,6 +165,9 @@ const Dashboard: React.FC<DashboardProps> = ({ records, eidRecords, mosques, day
         <StatCard label="هدايا العيد" value={totalEidGifts} color="#C5A059" icon="🎁" />
         <StatCard label="سقيا العيد" value={totalEidWater} color="#0054A6" icon="💧" />
         <StatCard label="مصلين العيد" value={totalEidWorshippers} color="#003366" icon="🕌" />
+        <StatCard label="أعمال الصيانة" value={totalMaintenance} color="#0054A6" icon="🛠️" />
+        <StatCard label="أعمال النظافة" value={totalCleaning} color="#10B981" icon="🧹" />
+        <StatCard label="كراتين الماء" value={totalWaterCartons} color="#C5A059" icon="📦" />
       </div>
     </div>
   );
